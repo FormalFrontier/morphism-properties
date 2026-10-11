@@ -1,0 +1,63 @@
+version: "v0.4"
+
+project:
+  name: Morphism Properties
+  description: >-
+    Relative preservation of maps between pullbacks and canonical transport
+    between structured over-categories, using Mathlib's morphism properties.
+    See README.md for hypotheses and limitations.
+  authors:
+    - Formal Frontier Agents
+  license: Apache-2.0
+
+sources:
+  - title: "Foundations of Rigid Geometry I"
+    authors:
+      - Kazuhiro Fujiwara
+      - Fumiharu Kato
+    type: book
+    location: "arXiv:1308.4734v5, Chapter 0, section 1.4(a), Proposition 1.4.1"
+    relationship: background
+    note: >-
+      Motivation for relative preservation and the first B2 object-structured
+      alternative, generalized to a fixed base arrow. This is not the full
+      B1/B2 package, converse, adjunction or creation of structured pullbacks.
+  - title: Mathlib
+    authors:
+      - The mathlib community
+    type: software
+    location: "https://github.com/leanprover-community/mathlib4"
+    relationship: adapts
+    note: >-
+      Uses morphism-property stability and cancellation, pullback pasting and
+      lifts, comma categories and the existing structured-over pullback functor.
+      Andrew Yang and Joel Riou's formalization credit is preserved in the code.
+
+status:
+  scope: >-
+    Two modules: generic relative pullback-map preservation and the either-leg
+    criterion for existing squares; a structured-over transport functor with
+    projection, membership, extensionality, uniqueness and comparison APIs.
+    Constructed examples use three- and four-object chains and nonempty finite
+    subsets, including unrelated-span pullback nonexistence along the same arrow.
+  main_results:
+    - declaration: CategoryTheory.MorphismProperty.isStableUnderBaseChange_either_iff
+      file: MorphismProperties/RelativeBaseChange.lean
+    - declaration: CategoryTheory.MorphismProperty.pullbackLift_fst_snd_of_intersection_of_postcomp
+      file: MorphismProperties/RelativeBaseChange.lean
+    - declaration: CategoryTheory.MorphismProperty.Over.pullbackOfIntersectionOfPostcomp
+      file: MorphismProperties/OverPullback.lean
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formal Frontier AI agents assisted with Lean formalization, examples,
+        package configuration and documentation using Mathlib.
+
+review:
+  status: "Under development"
+  notes: >-
+    The library covers relative preservation and fixed-base-arrow structured-over
+    transport, not the full B1/B2 package, converse, adjunction or creation of
+    structured pullbacks.

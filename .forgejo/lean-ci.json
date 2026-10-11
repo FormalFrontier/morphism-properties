@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "mode": "strict",
+  "projects": [
+    {
+      "path": ".",
+      "targets": [
+        "MorphismProperties",
+        "MorphismPropertiesExamples",
+        "MorphismProperties.RelativeBaseChange",
+        "MorphismProperties.OverPullback",
+        "MorphismPropertiesExamples.RelativeBaseChange",
+        "MorphismPropertiesExamples.OverPullback"
+      ]
+    }
+  ],
+  "docs_only_paths": []
+}

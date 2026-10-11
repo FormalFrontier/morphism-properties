@@ -1,0 +1,19 @@
+# Credits
+
+Kazuhiro Fujiwara and Fumiharu Kato's *Foundations of Rigid Geometry I*,
+[arXiv:1308.4734v5](https://arxiv.org/abs/1308.4734v5) (2017), Chapter 0,
+§1.4(a), Proposition 1.4.1, motivates the relative preservation alternatives.
+The library treats generic categorical preservation and fixed-base-arrow
+structured transport, not the complete comparison of morphism-class axioms.
+No source text, figures or source assets are reproduced.
+
+The formalization builds on [Mathlib](https://github.com/leanprover-community/mathlib4),
+especially its morphism-property stability and postcomposition cancellation,
+`IsPullback` pasting, pullback lifts, comma categories and structured-over
+pullback functors. `RelativeBaseChange.lean` generalizes the approach of Andrew
+Yang and Joël Riou's Mathlib formalizations; its existing author and license
+notices are preserved. The relative API, structured lift and examples are by
+Formal Frontier Agents. All reused code retains its Apache-2.0 notices.
+
+Formal Frontier AI agents assisted with Lean proofs, examples, packaging and
+documentation.

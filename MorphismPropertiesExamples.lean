@@ -1,0 +1,18 @@
+/-
+SPDX-License-Identifier: Apache-2.0
+Authors: Formal Frontier Agents
+-/
+module
+
+public import MorphismPropertiesExamples.RelativeBaseChange
+public import MorphismPropertiesExamples.OverPullback
+
+/-!
+# Examples of relative pullback preservation
+
+Constructed examples on finite chains and nonempty finite subsets, including
+failure of absolute stability and of unrelated pullback existence along the same
+base arrow. The structured-over examples exercise projections and uniqueness.
+-/
+
+@[expose] public section
