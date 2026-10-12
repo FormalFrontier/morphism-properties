@@ -36,12 +36,19 @@ The pairing also lifts to the over-category with unrestricted structure arrows
 and restricted horizontal arrows using Mathlib's comma-category constructor.
 Forgetting this lift recovers the same pairing and its non-surjective finite map.
 
+The finite symmetry clients use the natural comparison and its normalization
+equations. Independent finite-model checks use Mathlib's pullback symmetry and
+the pairing projection API. The right endomorphism exchanges the two points
+over `0` and fixes the point over `1`.
+
 ## References
 
 * Mathlib, `CategoryTheory.MorphismProperty.Limits`,
   `CategoryTheory.MorphismProperty.Comma`, and
   `CategoryTheory.Limits.Types.Pullbacks`, for the absolute comparison,
   restricted comma-category lifting, and existing pullback constructions.
+* Mathlib, `CategoryTheory.Limits.Shapes.Pullback.HasPullback`, for the symmetry
+  and projection equations used in the finite-model checks.
 -/
 
 @[expose] public section
@@ -326,6 +333,352 @@ example :
       ¬ IsIso (F.map pairingHorizontal).left :=
   ⟨Comma.lift_obj_toComma .., Comma.lift_map_hom ..,
     pairingImage_mem, pairingImage_not_surjective, pairingImage_not_isIso⟩
+
+private def fiberSwap : Fin 3 ⟶ Fin 3 :=
+  TypeCat.ofHom fun i ↦ if i = 0 then 2 else if i = 2 then 0 else 1
+
+private lemma fiberSwap_involutive : Function.Involutive fiberSwap := by
+  intro i
+  fin_cases i <;> rfl
+
+private lemma fiberSwap_mem : (monomorphisms (Type)) fiberSwap := by
+  rw [monomorphisms.iff, mono_iff_injective]
+  exact fiberSwap_involutive.injective
+
+private lemma fiberSwap_comp_collapse : fiberSwap ≫ collapse = collapse := by
+  ext i
+  fin_cases i <;> rfl
+
+private def pairingEndomorphism : pairingTarget ⟶ pairingTarget :=
+  Prod.mkHom (𝟙 pairingTarget.1)
+    (Over.homMk fiberSwap fiberSwap_comp_collapse fiberSwap_mem)
+
+private def targetPoint (y : Fin 3) : Types.PullbackObj (𝟙 (Fin 2)) collapse :=
+  ⟨(collapse y, y), rfl⟩
+
+private def reversedTargetPoint (y : Fin 3) :
+    Types.PullbackObj collapse (𝟙 (Fin 2)) :=
+  ⟨(y, collapse y), rfl⟩
+
+/-- The explicit target graph consists of three distinct points. -/
+example (q : Types.PullbackObj (𝟙 (Fin 2)) collapse) :
+    q = targetPoint 0 ∨ q = targetPoint 1 ∨ q = targetPoint 2 := by
+  rcases q with ⟨⟨x, y⟩, h⟩
+  change x = collapse y at h
+  subst x
+  fin_cases y
+  · exact Or.inl rfl
+  · exact Or.inr (Or.inl rfl)
+  · exact Or.inr (Or.inr rfl)
+
+private lemma target_swap_point (y : Fin 3) :
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      ((pullbackSymmetry (𝟙 (Fin 2)) collapse).hom
+        ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint y))) =
+      reversedTargetPoint y := by
+  apply Subtype.ext
+  apply Prod.ext
+  · rw [Types.pullbackIsoPullback_hom_fst]
+    exact (ConcreteCategory.congr_hom
+      (pullbackSymmetry_hom_comp_fst (𝟙 (Fin 2)) collapse) _).trans
+      (ConcreteCategory.congr_hom
+        (Types.pullbackIsoPullback_inv_snd (𝟙 (Fin 2)) collapse) (targetPoint y))
+  · rw [Types.pullbackIsoPullback_hom_snd]
+    exact (ConcreteCategory.congr_hom
+      (pullbackSymmetry_hom_comp_snd (𝟙 (Fin 2)) collapse) _).trans
+      (ConcreteCategory.congr_hom
+        (Types.pullbackIsoPullback_inv_fst (𝟙 (Fin 2)) collapse) (targetPoint y))
+
+private lemma target_inverse_point (y : Fin 3) :
+    (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).hom
+      ((pullbackSymmetry (𝟙 (Fin 2)) collapse).inv
+        ((Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).inv
+          (reversedTargetPoint y))) = targetPoint y := by
+  apply Subtype.ext
+  apply Prod.ext
+  · rw [Types.pullbackIsoPullback_hom_fst]
+    exact (ConcreteCategory.congr_hom
+      (pullbackSymmetry_inv_comp_fst (𝟙 (Fin 2)) collapse) _).trans
+      (ConcreteCategory.congr_hom
+        (Types.pullbackIsoPullback_inv_snd collapse (𝟙 (Fin 2)))
+          (reversedTargetPoint y))
+  · rw [Types.pullbackIsoPullback_hom_snd]
+    exact (ConcreteCategory.congr_hom
+      (pullbackSymmetry_inv_comp_snd (𝟙 (Fin 2)) collapse) _).trans
+      (ConcreteCategory.congr_hom
+        (Types.pullbackIsoPullback_inv_fst collapse (𝟙 (Fin 2)))
+          (reversedTargetPoint y))
+
+/-- Ambient symmetry sends `(0,2)` to `(2,0)`, and its inverse restores the
+point, using ambient pullback symmetry. -/
+example :
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      ((pullbackSymmetry (𝟙 (Fin 2)) collapse).hom
+        ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv
+          ⟨(0, 2), by decide⟩)) = ⟨(2, 0), by decide⟩ ∧
+    (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).hom
+      ((pullbackSymmetry (𝟙 (Fin 2)) collapse).inv
+        ((Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).inv
+          ⟨(2, 0), by decide⟩)) = ⟨(0, 2), by decide⟩ :=
+  ⟨target_swap_point 2, target_inverse_point 2⟩
+
+private def sourcePoint : Types.PullbackObj inclOne (𝟙 (Fin 2)) :=
+  ⟨(0, 0), rfl⟩
+
+/-- The proper-inclusion square sends the singleton source to `(0,0)` by
+both routes, using only existing symmetry and projection equations. -/
+example :
+    let x := (Types.pullbackIsoPullback inclOne (𝟙 (Fin 2))).inv sourcePoint
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      ((pullbackSymmetry (𝟙 (Fin 2)) collapse).hom (pairingImage.left x)) =
+        reversedTargetPoint 0 ∧
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      (((Over.pullbackPairing ⊤ (monomorphisms (Type))
+        (monomorphisms (Type)) (Fin 2)).map
+          ((Prod.swap _ _).map pairingHorizontal)).left
+            ((pullbackSymmetry inclOne (𝟙 (Fin 2))).hom x)) =
+      reversedTargetPoint 0 := by
+  dsimp only
+  have hx₁ := ConcreteCategory.congr_hom
+    (Types.pullbackIsoPullback_inv_fst inclOne (𝟙 (Fin 2))) sourcePoint
+  have hx₂ := ConcreteCategory.congr_hom
+    (Types.pullbackIsoPullback_inv_snd inclOne (𝟙 (Fin 2))) sourcePoint
+  constructor
+  · apply Subtype.ext
+    apply Prod.ext
+    · rw [Types.pullbackIsoPullback_hom_fst]
+      exact (ConcreteCategory.congr_hom
+        (pullbackSymmetry_hom_comp_fst (𝟙 (Fin 2)) collapse) _).trans
+        ((ConcreteCategory.congr_hom
+          (Over.pullbackPairing_map_snd (monomorphisms (Type)) ⊤
+            (monomorphisms (Type)) (Fin 2) pairingHorizontal) _).trans
+          (congrArg inclTwo hx₂))
+    · rw [Types.pullbackIsoPullback_hom_snd]
+      exact (ConcreteCategory.congr_hom
+        (pullbackSymmetry_hom_comp_snd (𝟙 (Fin 2)) collapse) _).trans
+        ((ConcreteCategory.congr_hom
+          (Over.pullbackPairing_map_fst (monomorphisms (Type)) ⊤
+            (monomorphisms (Type)) (Fin 2) pairingHorizontal) _).trans
+          (congrArg inclOne hx₁))
+  · apply Subtype.ext
+    apply Prod.ext
+    · exact (Types.pullbackIsoPullback_hom_fst collapse (𝟙 (Fin 2)) _).trans
+        ((ConcreteCategory.congr_hom
+          (Over.pullbackPairing_map_fst ⊤ (monomorphisms (Type))
+            (monomorphisms (Type)) (Fin 2)
+              ((Prod.swap _ _).map pairingHorizontal)) _).trans
+          (congrArg inclTwo ((ConcreteCategory.congr_hom
+            (pullbackSymmetry_hom_comp_fst inclOne (𝟙 (Fin 2))) _).trans hx₂)))
+    · exact (Types.pullbackIsoPullback_hom_snd collapse (𝟙 (Fin 2)) _).trans
+        ((ConcreteCategory.congr_hom
+          (Over.pullbackPairing_map_snd ⊤ (monomorphisms (Type))
+            (monomorphisms (Type)) (Fin 2)
+              ((Prod.swap _ _).map pairingHorizontal)) _).trans
+          (congrArg inclOne ((ConcreteCategory.congr_hom
+            (pullbackSymmetry_hom_comp_snd inclOne (𝟙 (Fin 2))) _).trans hx₁)))
+
+private lemma target_map_point (y : Fin 3) :
+    (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).hom
+      (((Over.pullbackPairing (monomorphisms (Type)) ⊤
+        (monomorphisms (Type)) (Fin 2)).map pairingEndomorphism).left
+          ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint y))) =
+      targetPoint (fiberSwap y) := by
+  apply Subtype.ext
+  apply Prod.ext
+  · let x : pullback (𝟙 (Fin 2)) collapse :=
+      (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint y)
+    have hmap :
+        pullback.fst (𝟙 (Fin 2)) collapse
+          (((Over.pullbackPairing (monomorphisms (Type)) ⊤
+            (monomorphisms (Type)) (Fin 2)).map pairingEndomorphism).left x) =
+          pullback.fst (𝟙 (Fin 2)) collapse x :=
+      ConcreteCategory.congr_hom
+        (Over.pullbackPairing_map_fst (monomorphisms (Type)) ⊤
+          (monomorphisms (Type)) (Fin 2)
+          (A := pairingTarget) (B := pairingTarget) pairingEndomorphism) x
+    have hinv : pullback.fst (𝟙 (Fin 2)) collapse x = collapse y :=
+      ConcreteCategory.congr_hom
+        (Types.pullbackIsoPullback_inv_fst (𝟙 (Fin 2)) collapse) (targetPoint y)
+    have hcollapse : collapse y = collapse (fiberSwap y) :=
+      (ConcreteCategory.congr_hom fiberSwap_comp_collapse y).symm
+    exact (Types.pullbackIsoPullback_hom_fst (𝟙 (Fin 2)) collapse
+      (((Over.pullbackPairing (monomorphisms (Type)) ⊤
+        (monomorphisms (Type)) (Fin 2)).map pairingEndomorphism).left x)).trans
+      (hmap.trans (hinv.trans hcollapse))
+  · exact (Types.pullbackIsoPullback_hom_snd (𝟙 (Fin 2)) collapse _).trans
+      ((ConcreteCategory.congr_hom
+        (Over.pullbackPairing_map_snd (monomorphisms (Type)) ⊤
+          (monomorphisms (Type)) (Fin 2) pairingEndomorphism) _).trans
+        (congrArg fiberSwap (ConcreteCategory.congr_hom
+          (Types.pullbackIsoPullback_inv_snd (𝟙 (Fin 2)) collapse) (targetPoint y))))
+
+private lemma reversed_target_map_point (y : Fin 3) :
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      (((Over.pullbackPairing ⊤ (monomorphisms (Type))
+        (monomorphisms (Type)) (Fin 2)).map
+          ((Prod.swap _ _).map pairingEndomorphism)).left
+            ((Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).inv
+              (reversedTargetPoint y))) = reversedTargetPoint (fiberSwap y) := by
+  apply Subtype.ext
+  apply Prod.ext
+  · exact (Types.pullbackIsoPullback_hom_fst collapse (𝟙 (Fin 2)) _).trans
+      ((ConcreteCategory.congr_hom
+        (Over.pullbackPairing_map_fst ⊤ (monomorphisms (Type))
+          (monomorphisms (Type)) (Fin 2)
+            ((Prod.swap _ _).map pairingEndomorphism)) _).trans
+        (congrArg fiberSwap (ConcreteCategory.congr_hom
+          (Types.pullbackIsoPullback_inv_fst collapse (𝟙 (Fin 2)))
+            (reversedTargetPoint y))))
+  · let x : pullback collapse (𝟙 (Fin 2)) :=
+      (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).inv (reversedTargetPoint y)
+    have hmap :
+        pullback.snd collapse (𝟙 (Fin 2))
+          (((Over.pullbackPairing ⊤ (monomorphisms (Type))
+            (monomorphisms (Type)) (Fin 2)).map
+              ((Prod.swap _ _).map pairingEndomorphism)).left x) =
+          pullback.snd collapse (𝟙 (Fin 2)) x :=
+      ConcreteCategory.congr_hom
+        (Over.pullbackPairing_map_snd ⊤ (monomorphisms (Type))
+          (monomorphisms (Type)) (Fin 2)
+          (A := (pairingTarget.2, pairingTarget.1))
+          (B := (pairingTarget.2, pairingTarget.1))
+          ((Prod.swap _ _).map pairingEndomorphism)) x
+    have hinv : pullback.snd collapse (𝟙 (Fin 2)) x = collapse y :=
+      ConcreteCategory.congr_hom
+        (Types.pullbackIsoPullback_inv_snd collapse (𝟙 (Fin 2))) (reversedTargetPoint y)
+    have hcollapse : collapse y = collapse (fiberSwap y) :=
+      (ConcreteCategory.congr_hom fiberSwap_comp_collapse y).symm
+    exact (Types.pullbackIsoPullback_hom_snd collapse (𝟙 (Fin 2))
+      (((Over.pullbackPairing ⊤ (monomorphisms (Type))
+        (monomorphisms (Type)) (Fin 2)).map
+          ((Prod.swap _ _).map pairingEndomorphism)).left x)).trans
+      (hmap.trans (hinv.trans hcollapse))
+
+/-- The additional horizontal morphism is mono, exchanges the two points over
+`0`, and fixes the point over `1`. Both graph maps therefore move two points. -/
+example :
+    (monomorphisms (Type)) pairingEndomorphism.2.left ∧
+    fiberSwap 0 = 2 ∧ fiberSwap 1 = 1 ∧ fiberSwap 2 = 0 ∧
+    targetPoint 0 ≠ targetPoint 2 ∧ reversedTargetPoint 0 ≠ reversedTargetPoint 2 := by
+  refine ⟨fiberSwap_mem, rfl, rfl, rfl, ?_, ?_⟩
+  · intro h
+    exact (by decide : (0 : Fin 3) ≠ 2) (congrArg (fun q ↦ q.val.2) h)
+  · intro h
+    exact (by decide : (0 : Fin 3) ≠ 2) (congrArg (fun q ↦ q.val.1) h)
+
+/-- The nonconstant three-point square commutes in coordinates using only the
+existing pullback symmetry and pairing projections. -/
+example (y : Fin 3) :
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      ((pullbackSymmetry (𝟙 (Fin 2)) collapse).hom
+        (((Over.pullbackPairing (monomorphisms (Type)) ⊤
+          (monomorphisms (Type)) (Fin 2)).map pairingEndomorphism).left
+            ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint y)))) =
+      reversedTargetPoint (fiberSwap y) ∧
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      (((Over.pullbackPairing ⊤ (monomorphisms (Type))
+        (monomorphisms (Type)) (Fin 2)).map
+          ((Prod.swap _ _).map pairingEndomorphism)).left
+            ((pullbackSymmetry (𝟙 (Fin 2)) collapse).hom
+              ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint y)))) =
+      reversedTargetPoint (fiberSwap y) := by
+  have hm :
+      ((Over.pullbackPairing (monomorphisms (Type)) ⊤
+        (monomorphisms (Type)) (Fin 2)).map pairingEndomorphism).left
+          ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint y)) =
+        (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv
+          (targetPoint (fiberSwap y)) :=
+    (ConcreteCategory.congr_hom
+      (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).hom_inv_id _).symm.trans
+        (congrArg (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv
+          (target_map_point y))
+  have hs :
+      (pullbackSymmetry (𝟙 (Fin 2)) collapse).hom
+        ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint y)) =
+        (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).inv
+          (reversedTargetPoint y) :=
+    (ConcreteCategory.congr_hom
+      (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom_inv_id _).symm.trans
+        (congrArg (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).inv
+          (target_swap_point y))
+  constructor
+  · rw [hm]
+    exact target_swap_point (fiberSwap y)
+  · rw [hs]
+    exact reversed_target_map_point y
+
+/-- Naturality on the two proper inclusions uses the reversed ordinary-over
+pairing map. -/
+example :
+    pairingImage ≫
+        (Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+          (monomorphisms (Type)) (Fin 2)).hom.app pairingTarget =
+      (Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+        (monomorphisms (Type)) (Fin 2)).hom.app pairingSource ≫
+          (Over.pullbackPairing ⊤ (monomorphisms (Type))
+            (monomorphisms (Type)) (Fin 2)).map
+              ((Prod.swap _ _).map pairingHorizontal) :=
+  (Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+    (monomorphisms (Type)) (Fin 2)).hom.naturality pairingHorizontal
+
+/-- Naturality applies to the nonconstant endomorphism of the three-point
+graph in both directions. -/
+example :
+    let σ := Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+      (monomorphisms (Type)) (Fin 2)
+    (Over.pullbackPairing (monomorphisms (Type)) ⊤
+      (monomorphisms (Type)) (Fin 2)).map pairingEndomorphism ≫ σ.hom.app pairingTarget =
+        σ.hom.app pairingTarget ≫
+          (Over.pullbackPairing ⊤ (monomorphisms (Type))
+            (monomorphisms (Type)) (Fin 2)).map
+              ((Prod.swap _ _).map pairingEndomorphism) ∧
+    (Over.pullbackPairing ⊤ (monomorphisms (Type))
+      (monomorphisms (Type)) (Fin 2)).map
+        ((Prod.swap _ _).map pairingEndomorphism) ≫ σ.inv.app pairingTarget =
+          σ.inv.app pairingTarget ≫
+            (Over.pullbackPairing (monomorphisms (Type)) ⊤
+              (monomorphisms (Type)) (Fin 2)).map pairingEndomorphism :=
+  ⟨(Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+      (monomorphisms (Type)) (Fin 2)).hom.naturality pairingEndomorphism,
+    (Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+      (monomorphisms (Type)) (Fin 2)).inv.naturality pairingEndomorphism⟩
+
+/-- Normalization through the characteristic left-map API sends
+`(0,2)` to `(2,0)` and restores it through the inverse. -/
+example :
+    let σ := Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+      (monomorphisms (Type)) (Fin 2)
+    (Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).hom
+      ((σ.hom.app pairingTarget).left
+        ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv (targetPoint 2))) =
+      reversedTargetPoint 2 ∧
+    (Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).hom
+      ((σ.inv.app pairingTarget).left
+        ((Types.pullbackIsoPullback collapse (𝟙 (Fin 2))).inv
+          (reversedTargetPoint 2))) = targetPoint 2 := by
+  dsimp only
+  rw [Over.pullbackPairingSymmetry_hom_app_left,
+    Over.pullbackPairingSymmetry_inv_app_left]
+  exact ⟨target_swap_point 2, target_inverse_point 2⟩
+
+/-- Normalization through the characteristic projection API
+identifies both coordinates, and the reversed component restores the object. -/
+example :
+    let σ := Over.pullbackPairingSymmetry (monomorphisms (Type)) ⊤
+      (monomorphisms (Type)) (Fin 2)
+    (σ.hom.app pairingTarget).left ≫ pullback.fst collapse (𝟙 (Fin 2)) =
+        pullback.snd (𝟙 (Fin 2)) collapse ∧
+    (σ.hom.app pairingTarget).left ≫ pullback.snd collapse (𝟙 (Fin 2)) =
+        pullback.fst (𝟙 (Fin 2)) collapse ∧
+    σ.hom.app pairingTarget ≫
+        (Over.pullbackPairingSymmetry ⊤ (monomorphisms (Type))
+          (monomorphisms (Type)) (Fin 2)).hom.app
+            (pairingTarget.2, pairingTarget.1) =
+      𝟙 ((Over.pullbackPairing (monomorphisms (Type)) ⊤
+        (monomorphisms (Type)) (Fin 2)).obj pairingTarget) := by
+  exact ⟨Over.pullbackPairingSymmetry_hom_app_fst _ _ _ _ _ _,
+    Over.pullbackPairingSymmetry_hom_app_snd _ _ _ _ _ _,
+    Over.pullbackPairingSymmetry_hom_app_comp_swap _ _ _ _ _ _⟩
 
 end FiniteTypes
 

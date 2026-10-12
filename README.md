@@ -81,6 +81,14 @@ Maps `i₁ : X ⟶ X'` and `i₂ : Y ⟶ Y'` satisfying `f = i₁ ≫ f'` and
   against `E`, base-change stability of `P ⊓ E` and `E`, and cancellation of
   `E` under postcomposition by `E`. The left endpoints supply `E`; the selected
   family supplies the mixed pullback `(target-left, source-right)`.
+- **Symmetry of fixed-base pairing**
+  ([`Over.pullbackPairingSymmetry`](MorphismProperties/PullbackPairing.lean)).
+  With the same multiplicativity and selected-pair existence hypotheses,
+  interchanging `E` and `Q` gives a natural isomorphism to the reversed pairing.
+  Reverse pullbacks are derived from the forward family. Components are the
+  ambient pullback symmetry maps, with characteristic equations for both
+  projections, the inverse, and swapping twice. No stability or iso invariance
+  of the morphism properties is required.
 
 The transport API characterizes objects, structure maps, underlying maps and
 both projections, supplies membership in `P` and `P ⊓ E`, and gives the ambient
@@ -172,7 +180,9 @@ family for construction, with independent object properties and universes;
 it requires no global pullbacks, whole-arrow existence or iso invariance.
 Its target is ordinary `Over S`. Neither projections nor the new structure map
 are claimed to have `P`; arbitrary coordinate-P maps need not have a joint P lift.
-No categorical product in a P-restricted structured category is asserted.
+Symmetry is in the ordinary over-category and imposes no horizontal property on
+its components. No categorical product in a P-restricted structured category is
+asserted.
 
 The four-object-chain examples exhibit relative but not absolute stability and
 transport `1 ⟶ 3` to `1 ⟶ 2` along `2 ⟶ 3`, outside `E`. The three-object chain
