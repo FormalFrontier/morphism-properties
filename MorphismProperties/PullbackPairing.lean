@@ -6,7 +6,9 @@ module
 
 public import MorphismProperties.RelativeBaseChange
 public import Mathlib.CategoryTheory.MorphismProperty.Comma
+public import Mathlib.CategoryTheory.Limits.Constructions.Over.Products
 public import Mathlib.CategoryTheory.Limits.FunctorCategory.Shapes.Pullbacks
+public import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts.BinaryFan
 public import Mathlib.CategoryTheory.Products.Basic
 
 /-!
@@ -16,7 +18,10 @@ Pairs of structured objects over `S` have a pullback-pairing functor to the ordi
 over-category of `S`. The left and right structure properties are independent;
 both horizontal maps satisfy the same multiplicative property. Only pullbacks of
 the selected pairs are required. The construction reuses pointwise pullback cones
-in the functor category and the ordinary over-category lift.
+in the functor category and the ordinary over-category lift. Its two ordinary-over
+projection transformations form a binary fan whose point is this same pairing.
+The product statement is in the ordinary-over functor category, without any
+horizontal restriction on projections or joint lifts.
 
 Stability of `P` against `E`, base-change stability of `P ⊓ E` and `E`, and
 cancellation of `E` under postcomposition by `E` preserve the horizontal property
@@ -42,6 +47,10 @@ closure or stability hypotheses.
 * Mathlib, `CategoryTheory.Limits.Shapes.Pullback.HasPullback`,
   `CategoryTheory.Products.Basic`, and `CategoryTheory.NatIso`, for pullback
   symmetry, swapping product categories, and componentwise natural isomorphisms.
+* Mathlib, `CategoryTheory.Limits.Shapes.BinaryProducts.BinaryFan`,
+  `CategoryTheory.Limits.Constructions.Over.Products`, and
+  `CategoryTheory.Limits.FunctorCategory.Basic`, for the projection fan,
+  the pullback-to-over-product equivalence and pointwise limit reflection.
 * K. Fujiwara and F. Kato, *Foundations of Rigid Geometry I*, arXiv:1308.4734v5
   (2017), Chapter 0, §1.4(a), Proposition 1.4.1, for the relative preservation
   alternatives motivating the map-membership statement. This fixed-base pairing
@@ -98,6 +107,13 @@ noncomputable def pullbackPairing :
     (fun A ↦ pullback.isLimit A.1.hom A.2.hom)
   CategoryTheory.Over.lift cone.pt (cone.fst ≫ leftCocone.ι)
 
+/-- The pairing object is the chosen ambient pullback with its structure map
+obtained from the first projection. -/
+@[simp]
+lemma pullbackPairing_obj (A : E.Over P S) (B : Q.Over P S) :
+    (pullbackPairing E Q P S).obj (A, B) =
+      CategoryTheory.Over.mk (pullback.fst A.hom B.hom ≫ A.hom) := rfl
+
 /-- The underlying object of the pairing is the chosen ambient pullback. -/
 @[simp]
 lemma pullbackPairing_obj_left (A : E.Over P S) (B : Q.Over P S) :
@@ -138,6 +154,127 @@ lemma pullbackPairing_map_left {A B : E.Over P S × Q.Over P S} (f : A ⟶ B) :
   apply pullback.hom_ext
   · exact (pullbackPairing_map_fst E Q P S f).trans (pullback.lift_fst _ _ _).symm
   · exact (pullbackPairing_map_snd E Q P S f).trans (pullback.lift_snd _ _ _).symm
+
+/-- The first projection of the pullback pairing to its left input, after
+forgetting to the ordinary over-category. -/
+noncomputable def pullbackPairingFst :
+    pullbackPairing E Q P S ⟶
+      Prod.fst (E.Over P S) (Q.Over P S) ⋙ Over.forget E P S where
+  app A := CategoryTheory.Over.homMk (pullback.fst A.1.hom A.2.hom)
+    (pullbackPairing_obj_hom E Q P S A.1 A.2).symm
+  naturality {A B} f := by
+    apply CategoryTheory.Over.OverMorphism.ext
+    exact pullbackPairing_map_fst E Q P S f
+
+/-- The second projection of the pullback pairing to its right input, after
+forgetting to the ordinary over-category. -/
+noncomputable def pullbackPairingSnd :
+    pullbackPairing E Q P S ⟶
+      Prod.snd (E.Over P S) (Q.Over P S) ⋙ Over.forget Q P S where
+  app A := CategoryTheory.Over.homMk (pullback.snd A.1.hom A.2.hom)
+    (pullbackPairing_obj_hom_eq_snd E Q P S A.1 A.2).symm
+  naturality {A B} f := by
+    apply CategoryTheory.Over.OverMorphism.ext
+    exact pullbackPairing_map_snd E Q P S f
+
+/-- The first projection component has the underlying ambient first projection. -/
+@[simp]
+lemma pullbackPairingFst_app_left (A : E.Over P S) (B : Q.Over P S) :
+    ((pullbackPairingFst E Q P S).app (A, B)).left =
+      pullback.fst A.hom B.hom := rfl
+
+/-- The second projection component has the underlying ambient second projection. -/
+@[simp]
+lemma pullbackPairingSnd_app_left (A : E.Over P S) (B : Q.Over P S) :
+    ((pullbackPairingSnd E Q P S).app (A, B)).left =
+      pullback.snd A.hom B.hom := rfl
+
+/-- The projection fan of the pullback pairing in the ordinary-over functor
+category. No horizontal property is required of either projection. -/
+noncomputable def pullbackPairingFan :
+    BinaryFan (Prod.fst (E.Over P S) (Q.Over P S) ⋙ Over.forget E P S)
+      (Prod.snd (E.Over P S) (Q.Over P S) ⋙ Over.forget Q P S) :=
+  BinaryFan.mk (pullbackPairingFst E Q P S) (pullbackPairingSnd E Q P S)
+
+/-- The point of the projection fan is the pullback pairing. -/
+@[simp]
+lemma pullbackPairingFan_pt :
+    (pullbackPairingFan E Q P S).pt = pullbackPairing E Q P S := rfl
+
+/-- The first leg of the projection fan is the first projection transformation. -/
+@[simp]
+lemma pullbackPairingFan_fst :
+    (pullbackPairingFan E Q P S).fst = pullbackPairingFst E Q P S := rfl
+
+/-- The second leg of the projection fan is the second projection transformation. -/
+@[simp]
+lemma pullbackPairingFan_snd :
+    (pullbackPairingFan E Q P S).snd = pullbackPairingSnd E Q P S := rfl
+
+/-- The projection fan is a product of the two forgetful input functors in the
+ordinary-over functor category. This imposes no horizontal condition on joint
+lifts or projections. -/
+noncomputable def pullbackPairingFan_isLimit : IsLimit (pullbackPairingFan E Q P S) := by
+  refine evaluationJointlyReflectsLimits _ fun ⟨A, B⟩ ↦ ?_
+  refine BinaryFan.isLimitMapConeEquiv.symm ?_
+  refine (pullback.isLimit A.hom B.hom).pullbackConeEquivBinaryFanFunctor.ofIsoLimit ?_
+  simp only [pullbackConeEquivBinaryFan, BinaryFan.map,
+    pullbackPairingFan_fst, pullbackPairingFan_snd]
+  let pointIso :
+      CategoryTheory.Over.mk (pullback.fst A.hom B.hom ≫ A.hom) ≅
+        (pullbackPairing E Q P S).obj (A, B) :=
+    eqToIso (pullbackPairing_obj E Q P S A B).symm
+  have hpoint :
+      CategoryTheory.Over.Hom.left pointIso.hom = 𝟙 (pullback A.hom B.hom) :=
+    (CategoryTheory.Over.eqToHom_left (pullbackPairing_obj E Q P S A B).symm).trans
+      (eqToHom_refl _ _)
+  refine BinaryFan.ext pointIso ?_ ?_
+  · apply CategoryTheory.Over.OverMorphism.ext
+    have hcomp :
+        CategoryTheory.Over.Hom.left
+            (pointIso.hom ≫
+              ((evaluation (E.Over P S × Q.Over P S) (CategoryTheory.Over S)).obj
+                (A, B)).map (pullbackPairingFst E Q P S)) =
+          CategoryTheory.Over.Hom.left pointIso.hom ≫
+            CategoryTheory.Over.Hom.left ((pullbackPairingFst E Q P S).app (A, B)) :=
+      CategoryTheory.Over.comp_left _ _ _ pointIso.hom
+        ((pullbackPairingFst E Q P S).app (A, B))
+    have hcone : (pullback.cone A.hom B.hom).fst = pullback.fst A.hom B.hom :=
+      PullbackCone.fst_limit_cone A.hom B.hom
+    have hrhs :
+        CategoryTheory.Over.Hom.left
+            (pointIso.hom ≫
+              ((evaluation (E.Over P S × Q.Over P S) (CategoryTheory.Over S)).obj
+                (A, B)).map (pullbackPairingFst E Q P S)) =
+          pullback.fst A.hom B.hom :=
+      hcomp.trans ((congrArg₂
+        (fun (f : pullback A.hom B.hom ⟶ pullback A.hom B.hom)
+          (g : pullback A.hom B.hom ⟶ A.left) ↦ f ≫ g)
+        hpoint (pullbackPairingFst_app_left E Q P S A B)).trans (Category.id_comp _))
+    exact hcone.trans hrhs.symm
+  · apply CategoryTheory.Over.OverMorphism.ext
+    have hcomp :
+        CategoryTheory.Over.Hom.left
+            (pointIso.hom ≫
+              ((evaluation (E.Over P S × Q.Over P S) (CategoryTheory.Over S)).obj
+                (A, B)).map (pullbackPairingSnd E Q P S)) =
+          CategoryTheory.Over.Hom.left pointIso.hom ≫
+            CategoryTheory.Over.Hom.left ((pullbackPairingSnd E Q P S).app (A, B)) :=
+      CategoryTheory.Over.comp_left _ _ _ pointIso.hom
+        ((pullbackPairingSnd E Q P S).app (A, B))
+    have hcone : (pullback.cone A.hom B.hom).snd = pullback.snd A.hom B.hom :=
+      PullbackCone.snd_limit_cone A.hom B.hom
+    have hrhs :
+        CategoryTheory.Over.Hom.left
+            (pointIso.hom ≫
+              ((evaluation (E.Over P S × Q.Over P S) (CategoryTheory.Over S)).obj
+                (A, B)).map (pullbackPairingSnd E Q P S)) =
+          pullback.snd A.hom B.hom :=
+      hcomp.trans ((congrArg₂
+        (fun (f : pullback A.hom B.hom ⟶ pullback A.hom B.hom)
+          (g : pullback A.hom B.hom ⟶ B.left) ↦ f ≫ g)
+        hpoint (pullbackPairingSnd_app_left E Q P S A B)).trans (Category.id_comp _))
+    exact hcone.trans hrhs.symm
 
 /-- Relative stability preserves the pairing's horizontal property when the left
 structure arrows satisfy `E`. Right structure arrows are unrestricted beyond `Q`.

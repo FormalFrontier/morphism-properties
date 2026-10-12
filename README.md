@@ -81,6 +81,13 @@ Maps `i₁ : X ⟶ X'` and `i₂ : Y ⟶ Y'` satisfying `f = i₁ ≫ f'` and
   against `E`, base-change stability of `P ⊓ E` and `E`, and cancellation of
   `E` under postcomposition by `E`. The left endpoints supply `E`; the selected
   family supplies the mixed pullback `(target-left, source-right)`.
+- **Product of the forgetful input functors**
+  ([`Over.pullbackPairingFan_isLimit`](MorphismProperties/PullbackPairing.lean)).
+  Under the same multiplicativity and selected-pair existence hypotheses,
+  the pullback pairing with its two projection transformations is a binary
+  product of `Prod.fst ⋙ Over.forget E P S` and `Prod.snd ⋙ Over.forget Q P S`
+  in `(E.Over P S × Q.Over P S) ⥤ CategoryTheory.Over S`. Joint lifts and
+  projections are ordinary-over morphisms; no membership in `P` is imposed.
 - **Symmetry of fixed-base pairing**
   ([`Over.pullbackPairingSymmetry`](MorphismProperties/PullbackPairing.lean)).
   With the same multiplicativity and selected-pair existence hypotheses,
@@ -159,7 +166,7 @@ dependencies, including private and generated declarations and used imports.
 | --- | --- |
 | [`MorphismProperties.RelativeBaseChange`](MorphismProperties/RelativeBaseChange.lean) | One- and two-factor relative preservation, either-leg criterion, absolute comparison and slice client. |
 | [`MorphismProperties.OverPullback`](MorphismProperties/OverPullback.lean) | Canonical structured-over functor, characteristic API and Mathlib comparisons. |
-| [`MorphismProperties.PullbackPairing`](MorphismProperties/PullbackPairing.lean) | Selected-pair fixed-base functor to ordinary Over, characteristic equations and relative horizontal preservation. |
+| [`MorphismProperties.PullbackPairing`](MorphismProperties/PullbackPairing.lean) | Selected-pair fixed-base functor to ordinary Over, projection-fan product, characteristic equations and relative horizontal preservation. |
 | [`MorphismPropertiesExamples.RelativeBaseChange`](MorphismPropertiesExamples/RelativeBaseChange.lean) | Three- and four-object chains; endpoint pullbacks in nonempty finite subsets. |
 | [`MorphismPropertiesExamples.OverPullback`](MorphismPropertiesExamples/OverPullback.lean) | Structured transport outside `E`, projections, uniqueness and nonisomorphic endpoints. |
 | [`MorphismPropertiesExamples.PullbackMap`](MorphismPropertiesExamples/PullbackMap.lean) | Selected mixed existence, absolute comparison, proper finite-type inclusions isolating both alternatives, asymmetric pairing, relative chain and finite-subset clients. |
