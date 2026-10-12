@@ -32,12 +32,16 @@ inclusions, the target right structure map is not mono, and the induced pairing
 map is mono but not surjective or an isomorphism. Membership is checked with the
 pairing's relative preservation theorem and independently with the existing
 map-of-pullbacks theorem; non-surjectivity uses the pairing's projection API.
+The pairing also lifts to the over-category with unrestricted structure arrows
+and restricted horizontal arrows using Mathlib's comma-category constructor.
+Forgetting this lift recovers the same pairing and its non-surjective finite map.
 
 ## References
 
-* Mathlib, `CategoryTheory.MorphismProperty.Limits` and
-  `CategoryTheory.Limits.Types.Pullbacks`, for the absolute comparison and
-  the existing pullback constructions.
+* Mathlib, `CategoryTheory.MorphismProperty.Limits`,
+  `CategoryTheory.MorphismProperty.Comma`, and
+  `CategoryTheory.Limits.Types.Pullbacks`, for the absolute comparison,
+  restricted comma-category lifting, and existing pullback constructions.
 -/
 
 @[expose] public section
@@ -110,6 +114,27 @@ example :
   exact P.pullbackMap h₁ h₂ e₁ e₂
 
 end Absolute
+
+section RestrictedPairing
+
+variable {C : Type u} [Category.{v} C]
+variable (E Q P : MorphismProperty C) [P.IsMultiplicative] (S : C)
+variable [∀ A : E.Over P S, ∀ B : Q.Over P S, HasPullback A.hom B.hom]
+variable [P.IsStableUnderBaseChangeAgainst E] [(P ⊓ E).IsStableUnderBaseChange]
+    [E.IsStableUnderBaseChange] [E.HasOfPostcompProperty E]
+
+/-- Relative preservation supplies the horizontal witness for comma-category
+lifting. No restriction is imposed on the output structure arrows, and forgetting
+recovers the entire ordinary-over pairing. -/
+example :
+    let F : (E.Over P S × Q.Over P S) ⥤ (⊤ : MorphismProperty C).Over P S :=
+      Comma.lift (Over.pullbackPairing E Q P S)
+        (fun _ ↦ trivial)
+        (fun f ↦ Over.pullbackPairing_map_mem_of_relative E Q P S f)
+        (fun _ ↦ trivial)
+    F ⋙ Over.forget ⊤ P S = Over.pullbackPairing E Q P S := rfl
+
+end RestrictedPairing
 
 section FiniteTypes
 
@@ -277,6 +302,30 @@ example :
     ¬ Function.Surjective pairingImage.left ∧ ¬ IsIso pairingImage.left :=
   ⟨inclOne_mem, inclTwo_mem, inclOne_not_isIso, inclTwo_not_isIso,
     collapse_not_mem, pairingImage_mem, pairingImage_not_surjective, pairingImage_not_isIso⟩
+
+set_option backward.isDefEq.respectTransparency false in
+/-- The restricted-target lift retains the asymmetric pairing's object and map.
+Its horizontal map is mono but still not surjective or an isomorphism. -/
+example :
+    let F :
+        ((monomorphisms (Type)).Over (monomorphisms (Type)) (Fin 2) ×
+          (⊤ : MorphismProperty (Type)).Over (monomorphisms (Type)) (Fin 2)) ⥤
+            (⊤ : MorphismProperty (Type)).Over (monomorphisms (Type)) (Fin 2) :=
+      Comma.lift
+        (Over.pullbackPairing (monomorphisms (Type)) ⊤ (monomorphisms (Type)) (Fin 2))
+        (fun _ ↦ trivial)
+        (fun f ↦ Over.pullbackPairing_map_mem_of_relative (monomorphisms (Type)) ⊤
+          (monomorphisms (Type)) (Fin 2) f)
+        (fun _ ↦ trivial)
+    (F.obj pairingTarget).toComma =
+        (Over.pullbackPairing (monomorphisms (Type)) ⊤
+          (monomorphisms (Type)) (Fin 2)).obj pairingTarget ∧
+      (F.map pairingHorizontal).hom = pairingImage ∧
+      (monomorphisms (Type)) (F.map pairingHorizontal).left ∧
+      ¬ Function.Surjective (F.map pairingHorizontal).left ∧
+      ¬ IsIso (F.map pairingHorizontal).left :=
+  ⟨Comma.lift_obj_toComma .., Comma.lift_map_hom ..,
+    pairingImage_mem, pairingImage_not_surjective, pairingImage_not_isIso⟩
 
 end FiniteTypes
 
