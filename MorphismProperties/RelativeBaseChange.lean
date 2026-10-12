@@ -29,9 +29,16 @@ a map in `P` between two arrows in `E` induces a map in `P ⊓ E` along any
 base arrow. Combining this with relative stability covers either two
 `E`-structured objects or a base arrow in `E`.
 
-This generalizes Mathlib's `MorphismProperty.pullbackLift_fst_snd` and
-`MorphismProperty.overPullbackMap`; the absolute compatibility applications retain
-their arrows and hypotheses in the four-object-chain clients.
+For two maps into a fixed base, composition closure of `P` gives preservation
+of the canonical map between pullbacks under either relative alternative.
+Besides the two endpoint pullbacks, each alternative requires only its own
+mixed pullback. This generalizes Mathlib's `MorphismProperty.pullbackMap`;
+the absolute comparison uses its unchanged pullback-existence hypotheses.
+
+The one-factor statements generalize Mathlib's
+`MorphismProperty.pullbackLift_fst_snd` and `MorphismProperty.overPullbackMap`;
+the absolute compatibility applications retain their arrows and hypotheses in
+the four-object-chain clients.
 
 ## References
 
@@ -165,6 +172,89 @@ theorem pullbackLift_fst_snd_of_relative_alternatives
   · exact (P.pullbackLift_fst_snd_of_intersection_of_postcomp E f hv₁₂
       hv₁₂E hv₂₂E hg).1
   · exact P.pullbackLift_fst_snd_of_isStableUnderBaseChangeAgainst E f hf hv₁₂ hg
+
+set_option backward.isDefEq.respectTransparency false in
+private theorem pullbackMap_id_fst_of_isStableUnderBaseChangeAgainst
+    (P E : MorphismProperty C)
+    [P.IsStableUnderBaseChangeAgainst E] [E.IsStableUnderBaseChange]
+    {S X Y Y' : C} {f : X ⟶ S} {g : Y ⟶ S} {g' : Y' ⟶ S} {i₂ : Y ⟶ Y'}
+    [HasPullback f g] [HasPullback f g']
+    (hf : E f) (h₂ : P i₂) (e₂ : g = i₂ ≫ g') :
+    P (pullback.map f g f g' (𝟙 X) i₂ (𝟙 S)
+      (by simp) ((Category.comp_id _).trans e₂)) := by
+  let := IsStableUnderBaseChangeAgainst.isStableUnderBaseChangeAlong
+    (P := P) (P' := E) (pullback.snd f g') (E.pullback_snd f g' hf)
+  refine IsStableUnderBaseChangeAlong.of_isPullback
+    (f := pullback.snd f g') (f' := pullback.snd f g) ?_ h₂
+  -- Cancel the bottom pullback square in the vertically pasted diagram.
+  refine IsPullback.of_bot ?_ (by simp) (IsPullback.of_hasPullback f g').flip
+  simpa [← e₂] using (IsPullback.of_hasPullback f g).flip
+
+/-- The canonical map between pullbacks preserves `P` under either of two
+relative alternatives: the two first structure arrows belong to `E`, or the
+source first structure arrow and the target second structure arrow belong to `E`.
+Both input maps belong to the composition-stable property `P`. The common
+hypotheses are relative base-change stability of `P` against `E`, absolute
+base-change stability of `P ⊓ E` and `E`, and cancellation of `E` under
+postcomposition by an `E` arrow.
+
+In addition to the endpoint pullbacks, the first alternative requires the mixed
+pullback of `f'` and `g`, while the second requires that of `f` and `g'`.
+Existence is local to the selected branch; no pullbacks along an entire arrow
+or in the whole category are required. This is the two-factor preservation
+statement motivated by Fujiwara--Kato, *Foundations of Rigid Geometry I*,
+Chapter 0, Proposition 1.4.1 (arXiv:1308.4734v5, 2017), and generalizes
+Mathlib's `MorphismProperty.pullbackMap`. -/
+theorem pullbackMap_of_relative_alternatives
+    (P E : MorphismProperty C)
+    [P.IsStableUnderComposition] [P.IsStableUnderBaseChangeAgainst E]
+    [(P ⊓ E).IsStableUnderBaseChange]
+    [E.IsStableUnderBaseChange] [E.HasOfPostcompProperty E]
+    {S X X' Y Y' : C} {f : X ⟶ S} {g : Y ⟶ S}
+    {f' : X' ⟶ S} {g' : Y' ⟶ S} {i₁ : X ⟶ X'} {i₂ : Y ⟶ Y'}
+    [HasPullback f g] [HasPullback f' g']
+    (h₁ : P i₁) (h₂ : P i₂) (e₁ : f = i₁ ≫ f') (e₂ : g = i₂ ≫ g')
+    (hE : (E f ∧ E f' ∧ HasPullback f' g) ∨
+      (E f ∧ E g' ∧ HasPullback f g')) :
+    P (pullback.map f g f' g' i₁ i₂ (𝟙 S)
+      ((Category.comp_id _).trans e₁) ((Category.comp_id _).trans e₂)) := by
+  rcases hE with ⟨hf, hf', hMixed⟩ | ⟨hf, hg', hMixed⟩
+  · let := hMixed
+    -- Change the first factor through the mixed pullback of `f'` and `g`.
+    have hFirst : P (pullback.map f g f' g i₁ (𝟙 Y) (𝟙 S)
+        ((Category.comp_id _).trans e₁) (by simp)) := by
+      simpa only [pullback.map, Category.comp_id] using
+        (P.pullbackLift_fst_snd_of_intersection_of_postcomp E g e₁ hf hf' h₁).1
+    have hSecond := P.pullbackMap_id_fst_of_isStableUnderBaseChangeAgainst E hf' h₂ e₂
+    simpa only [pullback.map_comp, Category.comp_id, Category.id_comp] using
+      P.comp_mem _ _ hFirst hSecond
+  · let := hMixed
+    -- Change the second factor first, using the mixed pullback of `f` and `g'`.
+    have hSecond := P.pullbackMap_id_fst_of_isStableUnderBaseChangeAgainst E hf h₂ e₂
+    have hFirst : P (pullback.map f g' f' g' i₁ (𝟙 Y') (𝟙 S)
+        ((Category.comp_id _).trans e₁) (by simp)) := by
+      simpa only [pullback.map, Category.comp_id] using
+        P.pullbackLift_fst_snd_of_isStableUnderBaseChangeAgainst E g' hg' e₁ h₁
+    simpa only [pullback.map_comp, Category.comp_id, Category.id_comp] using
+      P.comp_mem _ _ hSecond hFirst
+
+attribute [local instance] hasPullback_symmetry_of_hasPullbacksAlong in
+/-- With `E = ⊤`, relative two-factor preservation recovers Mathlib's
+`MorphismProperty.pullbackMap` under its unchanged hypotheses. Source existence
+follows by symmetry from pullbacks along `f`; the mixed and target pullbacks
+exist along `g'`. No pullbacks along `g` are required. -/
+theorem pullbackMap_of_relative_alternatives_top
+    (P : MorphismProperty C)
+    [P.IsStableUnderBaseChange] [P.IsStableUnderComposition]
+    {S X X' Y Y' : C} {f : X ⟶ S} [HasPullbacksAlong f]
+    {g : Y ⟶ S} {f' : X' ⟶ S} {g' : Y' ⟶ S}
+    {i₁ : X ⟶ X'} [HasPullbacksAlong g'] {i₂ : Y ⟶ Y'}
+    (h₁ : P i₁) (h₂ : P i₂) (e₁ : f = i₁ ≫ f') (e₂ : g = i₂ ≫ g') :
+    P (pullback.map f g f' g' i₁ i₂ (𝟙 S)
+      ((Category.comp_id _).trans e₁) ((Category.comp_id _).trans e₂)) := by
+  let := (isStableUnderBaseChangeAgainst_top_iff P).mpr inferInstance
+  exact P.pullbackMap_of_relative_alternatives ⊤ h₁ h₂ e₁ e₂
+    (Or.inr ⟨trivial, trivial, inferInstance⟩)
 
 /-- The existing pullback functor on slice categories preserves `P` on morphisms
 along an `E` arrow, provided `P` is stable against the base-change-stable `E`. -/
