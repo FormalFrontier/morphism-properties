@@ -5,6 +5,7 @@ Authors: Formal Frontier Agents
 module
 
 public import MorphismPropertiesExamples.RelativeBaseChange
+public import MorphismProperties.PullbackPairing
 public import Mathlib.CategoryTheory.Limits.Types.Pullbacks
 import Mathlib.Tactic.FinCases
 
@@ -24,6 +25,13 @@ only its second factor changes. In nonempty finite subsets, both input maps
 change and only local pullback cones are used, although the category lacks all
 pullbacks. Monomorphisms in that thin category are all morphisms, so this last
 example separates existence hypotheses, not morphism properties.
+
+The finite-type pairing client uses monomorphisms for the left structure property
+and all arrows for the right one. Its two horizontal factors are proper
+inclusions, the target right structure map is not mono, and the induced pairing
+map is mono but not surjective or an isomorphism. Membership is checked with the
+pairing's relative preservation theorem and independently with the existing
+map-of-pullbacks theorem; non-surjectivity uses the pairing's projection API.
 
 ## References
 
@@ -185,6 +193,90 @@ example :
     (monomorphisms (Type)) inclOne_mem inclTwo_mem
     (Category.comp_id inclOne).symm inclTwo_comp_collapse.symm
     (Or.inl ⟨inclOne_mem, by infer_instance, inferInstance⟩)
+
+private def pairingSource :
+    (monomorphisms (Type)).Over (monomorphisms (Type)) (Fin 2) ×
+      (⊤ : MorphismProperty (Type)).Over (monomorphisms (Type)) (Fin 2) :=
+  (Over.mk (monomorphisms (Type)) inclOne inclOne_mem,
+    Over.mk (monomorphisms (Type)) (𝟙 (Fin 2)) trivial)
+
+private def pairingTarget :
+    (monomorphisms (Type)).Over (monomorphisms (Type)) (Fin 2) ×
+      (⊤ : MorphismProperty (Type)).Over (monomorphisms (Type)) (Fin 2) :=
+  (Over.mk (monomorphisms (Type)) (𝟙 (Fin 2)) (by infer_instance),
+    Over.mk (monomorphisms (Type)) collapse trivial)
+
+private def pairingHorizontal : pairingSource ⟶ pairingTarget :=
+  Prod.mkHom (Over.homMk inclOne (Category.comp_id inclOne) inclOne_mem)
+    (Over.homMk inclTwo inclTwo_comp_collapse inclTwo_mem)
+
+private noncomputable def pairingImage :=
+  (Over.pullbackPairing (monomorphisms (Type)) ⊤ (monomorphisms (Type)) (Fin 2)).map
+    pairingHorizontal
+
+/-- The pairing's first projection recovers the first proper inclusion. -/
+example : pairingImage.left ≫ pullback.fst pairingTarget.1.hom pairingTarget.2.hom =
+    pullback.fst pairingSource.1.hom pairingSource.2.hom ≫ pairingHorizontal.1.left :=
+  Over.pullbackPairing_map_fst (monomorphisms (Type)) ⊤ (monomorphisms (Type)) (Fin 2)
+    pairingHorizontal
+
+/-- The pairing's second projection recovers the second proper inclusion. -/
+example : pairingImage.left ≫ pullback.snd pairingTarget.1.hom pairingTarget.2.hom =
+    pullback.snd pairingSource.1.hom pairingSource.2.hom ≫ pairingHorizontal.2.left :=
+  Over.pullbackPairing_map_snd (monomorphisms (Type)) ⊤ (monomorphisms (Type)) (Fin 2)
+    pairingHorizontal
+
+private lemma pairingImage_left_eq :
+    pairingImage.left =
+      pullback.map inclOne (𝟙 (Fin 2)) (𝟙 (Fin 2)) collapse
+        inclOne inclTwo (𝟙 (Fin 2))
+        ((Category.comp_id _).trans (Category.comp_id inclOne).symm)
+        ((Category.comp_id _).trans inclTwo_comp_collapse.symm) :=
+  Over.pullbackPairing_map_left (monomorphisms (Type)) ⊤ (monomorphisms (Type)) (Fin 2)
+    pairingHorizontal
+
+-- Membership is independently witnessed by the existing two-factor theorem.
+private lemma pairingImage_mem : (monomorphisms (Type)) pairingImage.left := by
+  rw [pairingImage_left_eq]
+  exact (monomorphisms (Type)).pullbackMap_of_relative_alternatives
+    (monomorphisms (Type)) inclOne_mem inclTwo_mem
+    (Category.comp_id inclOne).symm inclTwo_comp_collapse.symm
+    (Or.inl ⟨inclOne_mem, by infer_instance, inferInstance⟩)
+
+/-- The pairing theorem preserves monomorphisms in the same asymmetric model. -/
+example : (monomorphisms (Type)) pairingImage.left :=
+  Over.pullbackPairing_map_mem_of_relative (monomorphisms (Type)) ⊤
+    (monomorphisms (Type)) (Fin 2) pairingHorizontal
+
+private lemma pairingImage_not_surjective : ¬ Function.Surjective pairingImage.left := by
+  intro h
+  let y : Types.PullbackObj (𝟙 (Fin 2)) collapse := ⟨(1, 1), by decide⟩
+  obtain ⟨x, hx⟩ := h ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv y)
+  have hfst : pullback.fst (𝟙 (Fin 2)) collapse (pairingImage.left x) = (0 : Fin 2) :=
+    ConcreteCategory.congr_hom (Over.pullbackPairing_map_fst (monomorphisms (Type)) ⊤
+      (monomorphisms (Type)) (Fin 2) pairingHorizontal) x
+  rw [hx] at hfst
+  have hy : pullback.fst (𝟙 (Fin 2)) collapse
+      ((Types.pullbackIsoPullback (𝟙 (Fin 2)) collapse).inv y) = (1 : Fin 2) :=
+    ConcreteCategory.congr_hom (Types.pullbackIsoPullback_inv_fst (𝟙 (Fin 2)) collapse) y
+  exact (by decide : (1 : Fin 2) ≠ 0) (hy.symm.trans hfst)
+
+private lemma pairingImage_not_isIso : ¬ IsIso pairingImage.left := by
+  rw [isIso_iff_bijective]
+  exact fun h ↦ pairingImage_not_surjective h.2
+
+/-- Both pairing factors are proper monomorphisms, while the right target
+structure map is not mono. The image is mono but misses a point in the target
+pullback, so it is neither an identity nor an isomorphism. -/
+example :
+    (monomorphisms (Type)) pairingHorizontal.1.left ∧
+    (monomorphisms (Type)) pairingHorizontal.2.left ∧
+    ¬ IsIso pairingHorizontal.1.left ∧ ¬ IsIso pairingHorizontal.2.left ∧
+    ¬ (monomorphisms (Type)) pairingTarget.2.hom ∧
+    (monomorphisms (Type)) pairingImage.left ∧
+    ¬ Function.Surjective pairingImage.left ∧ ¬ IsIso pairingImage.left :=
+  ⟨inclOne_mem, inclTwo_mem, inclOne_not_isIso, inclTwo_not_isIso,
+    collapse_not_mem, pairingImage_mem, pairingImage_not_surjective, pairingImage_not_isIso⟩
 
 end FiniteTypes
 

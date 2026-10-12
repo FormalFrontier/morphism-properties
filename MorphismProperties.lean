@@ -6,6 +6,7 @@ module
 
 public import MorphismProperties.RelativeBaseChange
 public import MorphismProperties.OverPullback
+public import MorphismProperties.PullbackPairing
 
 /-!
 # Morphism properties and pullback preservation

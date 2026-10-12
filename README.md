@@ -1,7 +1,8 @@
 # Morphism Properties
 
-Relative preservation of maps between pullbacks, and canonical pullback transport
-between structured over-categories, using Mathlib's morphism-property classes.
+Relative preservation of maps between pullbacks, canonical structured-over
+transport, and pullback pairing over a fixed base, using Mathlib's
+morphism-property classes.
 The library is intended for categorical base-change arguments where absolute
 stability or pullbacks of every object would be stronger than necessary.
 
@@ -70,6 +71,16 @@ Maps `i₁ : X ⟶ X'` and `i₂ : Y ⟶ Y'` satisfying `f = i₁ ≫ f'` and
   `(P ⊓ E).IsStableUnderBaseChange`, and `E.HasOfPostcompProperty E`.
   Here existence is required only for structure arrows satisfying `E`,
   not for every object over `S`.
+- **Fixed-base pullback pairing**
+  ([`Over.pullbackPairing` and `Over.pullbackPairing_map_mem_of_relative`](MorphismProperties/PullbackPairing.lean)).
+  A functor `(E.Over P S × Q.Over P S) ⥤ CategoryTheory.Over S` assuming only
+  `P.IsMultiplicative` and `HasPullback A.hom B.hom` for every selected
+  `A : E.Over P S`, `B : Q.Over P S`. No closure of `E` or `Q` is required.
+  Objects are the chosen ambient pullbacks and maps are the canonical
+  `pullback.map`. Preservation of `P` separately assumes stability of `P`
+  against `E`, base-change stability of `P ⊓ E` and `E`, and cancellation of
+  `E` under postcomposition by `E`. The left endpoints supply `E`; the selected
+  family supplies the mixed pullback `(target-left, source-right)`.
 
 The transport API characterizes objects, structure maps, underlying maps and
 both projections, supplies membership in `P` and `P ⊓ E`, and gives the ambient
@@ -110,8 +121,16 @@ example :
 
 The example theorem is exercised in
 [`MorphismPropertiesExamples.RelativeBaseChange`](MorphismPropertiesExamples/RelativeBaseChange.lean).
-Leaf imports `MorphismProperties.RelativeBaseChange` and
-`MorphismProperties.OverPullback` are also available.
+Leaf imports `MorphismProperties.RelativeBaseChange`,
+`MorphismProperties.OverPullback`, and `MorphismProperties.PullbackPairing`
+are also available. For structured pairs over one base, use
+`Over.pullbackPairing E Q P S`; compose with `CategoryTheory.Over.forget S`
+for a `C`-valued pairing. The `_obj_left`, `_obj_hom`, `_map_fst`, `_map_snd`
+and `_map_left` lemmas characterize its objects, structure arrows, projections
+and canonical map without unfolding it. Apply `_map_mem_of_relative` under
+its separate stability hypotheses. The asymmetric finite-Type client in
+[`MorphismPropertiesExamples.PullbackMap`](MorphismPropertiesExamples/PullbackMap.lean)
+uses this theorem and independently checks membership with the pointwise API.
 
 ## Building
 
@@ -132,9 +151,10 @@ dependencies, including private and generated declarations and used imports.
 | --- | --- |
 | [`MorphismProperties.RelativeBaseChange`](MorphismProperties/RelativeBaseChange.lean) | One- and two-factor relative preservation, either-leg criterion, absolute comparison and slice client. |
 | [`MorphismProperties.OverPullback`](MorphismProperties/OverPullback.lean) | Canonical structured-over functor, characteristic API and Mathlib comparisons. |
+| [`MorphismProperties.PullbackPairing`](MorphismProperties/PullbackPairing.lean) | Selected-pair fixed-base functor to ordinary Over, characteristic equations and relative horizontal preservation. |
 | [`MorphismPropertiesExamples.RelativeBaseChange`](MorphismPropertiesExamples/RelativeBaseChange.lean) | Three- and four-object chains; endpoint pullbacks in nonempty finite subsets. |
 | [`MorphismPropertiesExamples.OverPullback`](MorphismPropertiesExamples/OverPullback.lean) | Structured transport outside `E`, projections, uniqueness and nonisomorphic endpoints. |
-| [`MorphismPropertiesExamples.PullbackMap`](MorphismPropertiesExamples/PullbackMap.lean) | Selected mixed existence, absolute comparison, proper finite-type inclusions isolating both alternatives, relative chain and finite-subset clients. |
+| [`MorphismPropertiesExamples.PullbackMap`](MorphismPropertiesExamples/PullbackMap.lean) | Selected mixed existence, absolute comparison, proper finite-type inclusions isolating both alternatives, asymmetric pairing, relative chain and finite-subset clients. |
 | [`MorphismPropertiesExamples.IdentityClosure`](MorphismPropertiesExamples/IdentityClosure.lean) | A composition- and base-change-stable target-bound property excluding an identity, with both factors changing. |
 
 ## Conventions and limitations
@@ -147,6 +167,12 @@ composition closure of the morphism properties. Two-factor preservation assumes
 composition closure of `P`, but not identity closure of `P` or identity/composition
 closure of `E`. Structured transport needs multiplicativity of `P`, but not
 identity/composition closure of `E`, absolute stability of `P`, or `E f`.
+The pairing likewise needs only multiplicativity of `P` and the selected-pair
+family for construction, with independent object properties and universes;
+it requires no global pullbacks, whole-arrow existence or iso invariance.
+Its target is ordinary `Over S`. Neither projections nor the new structure map
+are claimed to have `P`; arbitrary coordinate-P maps need not have a joint P lift.
+No categorical product in a P-restricted structured category is asserted.
 
 The four-object-chain examples exhibit relative but not absolute stability and
 transport `1 ⟶ 3` to `1 ⟶ 2` along `2 ⟶ 3`, outside `E`. The three-object chain
@@ -158,6 +184,8 @@ whole-over and global pullback existence. Its two-factor example changes both
 input inclusions; monomorphisms in that thin category are all arrows, so it tests
 existence rather than a proper morphism property. The finite-type monomorphism
 examples use proper inclusions in both factors and isolate the two alternatives.
+The pairing client takes left monos and unrestricted right objects over `Fin 2`;
+its right target leg is nonmono and its induced mono is nonsurjective/non-isomorphic.
 The non-absolutely-stable four-object-chain two-factor example changes only the
 second factor. On `Fin 4`, the property of having target at most `2` is stable
 under composition and absolute base change but excludes the identity at `3`;
@@ -177,8 +205,10 @@ of pullbacks in the structured category, or a functor on all base arrows.
   [arXiv:1308.4734v5](https://arxiv.org/abs/1308.4734v5) (2017),
   Chapter 0, §1.4(a), Proposition 1.4.1: mathematical motivation.
 - [Mathlib](https://github.com/leanprover-community/mathlib4),
-  `CategoryTheory.MorphismProperty.Limits`, `Comma`, and `OverAdjunction`:
-  reused stability, cancellation, structured-category and pullback APIs.
+  `CategoryTheory.MorphismProperty.Limits`, `Comma`, `OverAdjunction`,
+  `Limits.FunctorCategory.Shapes.Pullbacks`, and `Comma.Over.Basic`:
+  reused stability, cancellation, structured-category, pointwise cone assembly
+  and ordinary-over lift APIs.
 
 ## Credits and license
 
