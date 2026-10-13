@@ -147,6 +147,11 @@ its separate stability hypotheses. The asymmetric finite-Type client in
 [`MorphismPropertiesExamples.PullbackMap`](MorphismPropertiesExamples/PullbackMap.lean)
 uses this theorem and independently checks membership with the pointwise API.
 
+Import `MorphismPropertiesExamples.PullbackAssociativity` for finite diagrams
+in `CategoryTheory.FiniteDiagram`. The example gives a natural associator of
+selected pointwise pullbacks, joint lifts for both associated products, and
+projection-preserving comparisons with equal-bit triples.
+
 ## Building
 
 The toolchain and complete Mathlib dependency graph are pinned in
@@ -171,6 +176,9 @@ dependencies, including private and generated declarations and used imports.
 | [`MorphismPropertiesExamples.OverPullback`](MorphismPropertiesExamples/OverPullback.lean) | Structured transport outside `E`, projections, uniqueness and nonisomorphic endpoints. |
 | [`MorphismPropertiesExamples.PullbackMap`](MorphismPropertiesExamples/PullbackMap.lean) | Selected mixed existence, absolute comparison, proper finite-type inclusions isolating both alternatives, asymmetric pairing, relative chain and finite-subset clients. |
 | [`MorphismPropertiesExamples.IdentityClosure`](MorphismPropertiesExamples/IdentityClosure.lean) | A composition- and base-change-stable target-bound property excluding an identity, with both factors changing. |
+| [`MorphismPropertiesExamples.PullbackAssociativity`][assoc] | Finite associator and joint lifts. |
+
+[assoc]: MorphismPropertiesExamples/PullbackAssociativity.lean
 
 ## Conventions and limitations
 
