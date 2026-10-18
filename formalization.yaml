@@ -4,8 +4,9 @@ project:
   name: Morphism Properties
   description: >-
     Relative preservation of maps between pullbacks, canonical transport
-    between structured over-categories, and pullback pairing over a fixed base,
-    using Mathlib's morphism properties.
+    between structured over-categories, pullback pairing over a fixed base,
+    and density under slicing, using Mathlib's morphism-property and
+    dense-functor classes.
     See README.md for hypotheses and limitations.
   authors:
     - Formal Frontier Agents
@@ -34,18 +35,27 @@ sources:
       Uses morphism-property stability and cancellation, pullback pasting and
       lifts, comma categories, the existing structured-over pullback functor,
       pointwise pullback-cone assembly and the ordinary over-category lift.
+      The density chapter uses Joël Riou's canonical-colimit density formalization,
+      the costructured-arrow comparison and colimit reflection for over-categories.
       Andrew Yang and Joel Riou's formalization credit is preserved in the code.
 
 status:
   scope: >-
-    Three modules: generic relative pullback-map preservation and the either-leg
+    Four modules: generic relative pullback-map preservation and the either-leg
     criterion for existing squares; structured-over transport with projection,
     membership, extensionality, uniqueness and comparison APIs; and a fixed-base
     pullback pairing with independent object properties, selected-pair existence
-    and relative horizontal preservation. Constructed examples use three- and
+    and relative horizontal preservation; and pointwise density under slicing,
+    with a dense-functor instance under the hypothesis that the original functor
+    is dense. Density examples use Yoneda over two-point and empty constant
+    presheaves. Other constructed examples use three- and
     four-object chains, nonempty finite subsets and proper finite-type maps,
     including local existence boundaries and an asymmetric nonisomorphic pairing.
   main_results:
+    - declaration: CategoryTheory.CostructuredArrow.isDenseAt_toOver
+      file: MorphismProperties/Density.lean
+    - declaration: CategoryTheory.CostructuredArrow.isDense_toOver
+      file: MorphismProperties/Density.lean
     - declaration: CategoryTheory.MorphismProperty.isStableUnderBaseChange_either_iff
       file: MorphismProperties/RelativeBaseChange.lean
     - declaration: CategoryTheory.MorphismProperty.pullbackLift_fst_snd_of_intersection_of_postcomp

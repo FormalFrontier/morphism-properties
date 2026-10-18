@@ -7,6 +7,7 @@ module
 public import MorphismProperties.RelativeBaseChange
 public import MorphismProperties.OverPullback
 public import MorphismProperties.PullbackPairing
+public import MorphismProperties.Density
 
 /-!
 # Morphism properties and pullback preservation

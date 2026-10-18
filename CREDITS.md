@@ -17,5 +17,13 @@ Mathlib formalizations; its existing author and license
 notices are preserved. The relative API, structured lift and examples are by
 Formal Frontier Agents. All reused code retains its Apache-2.0 notices.
 
+The density-under-slicing chapter follows Joël Riou's Mathlib `DenseAt` and
+`Dense` formalizations of canonical-colimit density. It uses Mathlib's
+`Comma.Over.Basic` costructured-arrow comparison and `Limits.Over` colimit
+reflection through the forgetful functor. The comma/over and colimit
+formalizations include work by Johan Commelin, Reid Barton and Bhavik Mehta.
+The examples use Mathlib's dense Yoneda embedding, constant presheaves,
+discrete categories and type-category constructors.
+
 Formal Frontier AI agents assisted with Lean proofs, examples, packaging and
 documentation.

@@ -1,14 +1,14 @@
 # Morphism Properties
 
 Relative preservation of maps between pullbacks, canonical structured-over
-transport, and pullback pairing over a fixed base, using Mathlib's
-morphism-property classes.
+transport, pullback pairing over a fixed base, and density under slicing, using
+Mathlib's morphism-property and dense-functor classes.
 The library is intended for categorical base-change arguments where absolute
 stability or pullbacks of every object would be stronger than necessary.
 
 ## Headline results
 
-All declarations below lie in `CategoryTheory.MorphismProperty`.
+The pullback declarations below lie in `CategoryTheory.MorphismProperty`.
 In the one-factor results, `f : S' ⟶ S` is a fixed base-change arrow.
 For structure maps `v₁₂ : X ⟶ S`, `v₂₂ : Y ⟶ S`, and `g : X ⟶ Y` with
 `v₁₂ = g ≫ v₂₂`, the induced map is `X ×[S] S' ⟶ Y ×[S] S'`.
@@ -96,6 +96,14 @@ Maps `i₁ : X ⟶ X'` and `i₂ : Y ⟶ Y'` satisfying `f = i₁ ≫ f'` and
   ambient pullback symmetry maps, with characteristic equations for both
   projections, the inverse, and swapping twice. No stability or iso invariance
   of the morphism properties is required.
+- **Density under slicing**
+  ([`CategoryTheory.CostructuredArrow.isDenseAt_toOver` and `isDense_toOver`](MorphismProperties/Density.lean)).
+  For arbitrary categories `A`, `C`, a functor `F : A ⥤ C`, `X : C`, and
+  `Y : CategoryTheory.Over X`, `F.isDenseAt Y.left` implies
+  `(CategoryTheory.CostructuredArrow.toOver F X).isDenseAt Y`.
+  Consequently, if `F.IsDense`, then `CostructuredArrow.toOver F X` is dense.
+  No fullness, faithfulness, limit-existence or nonemptiness hypothesis is required;
+  a converse to the pointwise implication is not asserted.
 
 The transport API characterizes objects, structure maps, underlying maps and
 both projections, supplies membership in `P` and `P ⊓ E`, and gives the ambient
@@ -137,8 +145,8 @@ example :
 The example theorem is exercised in
 [`MorphismPropertiesExamples.RelativeBaseChange`](MorphismPropertiesExamples/RelativeBaseChange.lean).
 Leaf imports `MorphismProperties.RelativeBaseChange`,
-`MorphismProperties.OverPullback`, and `MorphismProperties.PullbackPairing`
-are also available. For structured pairs over one base, use
+`MorphismProperties.OverPullback`, `MorphismProperties.PullbackPairing`, and
+`MorphismProperties.Density` are also available. For structured pairs over one base, use
 `Over.pullbackPairing E Q P S`; compose with `CategoryTheory.Over.forget S`
 for a `C`-valued pairing. The `_obj_left`, `_obj_hom`, `_map_fst`, `_map_snd`
 and `_map_left` lemmas characterize its objects, structure arrows, projections
@@ -169,6 +177,8 @@ dependencies, including private and generated declarations and used imports.
 
 | Module | Contents |
 | --- | --- |
+| [`MorphismProperties.Density`](MorphismProperties/Density.lean) | Pointwise density under slicing and the dense-functor instance. |
+| [`MorphismPropertiesExamples.Density`](MorphismPropertiesExamples/Density.lean) | Sliced Yoneda, two distinct points in each fibre of a two-point constant presheaf, and the empty-base boundary. |
 | [`MorphismProperties.RelativeBaseChange`](MorphismProperties/RelativeBaseChange.lean) | One- and two-factor relative preservation, either-leg criterion, absolute comparison and slice client. |
 | [`MorphismProperties.OverPullback`](MorphismProperties/OverPullback.lean) | Canonical structured-over functor, characteristic API and Mathlib comparisons. |
 | [`MorphismProperties.PullbackPairing`](MorphismProperties/PullbackPairing.lean) | Selected-pair fixed-base functor to ordinary Over, projection-fan product, characteristic equations and relative horizontal preservation. |
@@ -185,7 +195,9 @@ dependencies, including private and generated declarations and used imports.
 Object and morphism universes are independent. The library retains Mathlib's
 `CategoryTheory.MorphismProperty` namespaces, stability classes, comma categories,
 pullback constructions and functor machinery; it introduces no new category or
-existence class. One-factor pointwise results do not assume identity or
+existence class. The density chapter uses `CategoryTheory.CostructuredArrow.toOver`
+and Mathlib's canonical-colimit definition of density, for categories with independent
+object and morphism universes. One-factor pointwise results do not assume identity or
 composition closure of the morphism properties. Two-factor preservation assumes
 composition closure of `P`, but not identity closure of `P` or identity/composition
 closure of `E`. Structured transport needs multiplicativity of `P`, but not
@@ -234,6 +246,11 @@ of pullbacks in the structured category, or a functor on all base arrows.
   `Limits.FunctorCategory.Shapes.Pullbacks`, and `Comma.Over.Basic`:
   reused stability, cancellation, structured-category, pointwise cone assembly
   and ordinary-over lift APIs.
+- Mathlib, `Functor.KanExtension.DenseAt`, `Functor.KanExtension.Dense`,
+  `Comma.Over.Basic` and `Limits.Over`: Joël Riou's canonical-colimit density
+  formalization, the costructured-arrow comparison, and colimit reflection through
+  the over-category forgetful functor. The comma/over and colimit formalizations
+  include work by Johan Commelin, Reid Barton and Bhavik Mehta.
 
 ## Credits and license
 

@@ -9,6 +9,7 @@ public import MorphismPropertiesExamples.OverPullback
 public import MorphismPropertiesExamples.PullbackMap
 public import MorphismPropertiesExamples.IdentityClosure
 public import MorphismPropertiesExamples.PullbackAssociativity
+public import MorphismPropertiesExamples.Density
 
 /-!
 # Examples of relative pullback preservation
