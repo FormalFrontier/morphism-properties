@@ -133,14 +133,14 @@ lemma pullbackPairing_obj_hom_eq_snd (A : E.Over P S) (B : Q.Over P S) :
   exact pullback.condition
 
 /-- The first projection of the induced map recovers its left factor. -/
-@[reassoc (attr := simp)]
+@[simp, reassoc]
 lemma pullbackPairing_map_fst {A B : E.Over P S × Q.Over P S} (f : A ⟶ B) :
     ((pullbackPairing E Q P S).map f).left ≫ pullback.fst B.1.hom B.2.hom =
       pullback.fst A.1.hom A.2.hom ≫ f.1.left :=
   (pullbackPairingCone E Q P S).fst.naturality f
 
 /-- The second projection of the induced map recovers its right factor. -/
-@[reassoc (attr := simp)]
+@[simp, reassoc]
 lemma pullbackPairing_map_snd {A B : E.Over P S × Q.Over P S} (f : A ⟶ B) :
     ((pullbackPairing E Q P S).map f).left ≫ pullback.snd B.1.hom B.2.hom =
       pullback.snd A.1.hom A.2.hom ≫ f.2.left :=
@@ -214,7 +214,7 @@ lemma pullbackPairingFan_snd :
 /-- The projection fan is a product of the two forgetful input functors in the
 ordinary-over functor category. This imposes no horizontal condition on joint
 lifts or projections. -/
-noncomputable def pullbackPairingFan_isLimit : IsLimit (pullbackPairingFan E Q P S) := by
+noncomputable def pullbackPairingFanIsLimit : IsLimit (pullbackPairingFan E Q P S) := by
   refine evaluationJointlyReflectsLimits _ fun ⟨A, B⟩ ↦ ?_
   refine BinaryFan.isLimitMapConeEquiv.symm ?_
   refine (pullback.isLimit A.hom B.hom).pullbackConeEquivBinaryFanFunctor.ofIsoLimit ?_
@@ -275,6 +275,15 @@ noncomputable def pullbackPairingFan_isLimit : IsLimit (pullbackPairingFan E Q P
           (g : pullback A.hom B.hom ⟶ B.left) ↦ f ≫ g)
         hpoint (pullbackPairingSnd_app_left E Q P S A B)).trans (Category.id_comp _))
     exact hcone.trans hrhs.symm
+
+-- The deprecated public spelling is retained for compatibility.
+@[inherit_doc pullbackPairingFanIsLimit,
+  deprecated pullbackPairingFanIsLimit (since := "2026-10-24"),
+  nolint defsWithUnderscore]
+noncomputable def pullbackPairingFan_isLimit :
+    IsLimit (pullbackPairingFan E Q P S) :=
+  @pullbackPairingFanIsLimit C ‹Category.{v} C› E Q P ‹P.IsMultiplicative› S
+    ‹∀ A : E.Over P S, ∀ B : Q.Over P S, HasPullback A.hom B.hom›
 
 /-- Relative stability preserves the pairing's horizontal property when the left
 structure arrows satisfy `E`. Right structure arrows are unrestricted beyond `Q`.
@@ -363,7 +372,7 @@ lemma pullbackPairingSymmetry_inv_app_left (A : E.Over P S) (B : Q.Over P S) :
   rfl
 
 /-- The first reversed projection is the second forward projection. -/
-@[reassoc (attr := simp)]
+@[reassoc]
 lemma pullbackPairingSymmetry_hom_app_fst (A : E.Over P S) (B : Q.Over P S) :
     ((pullbackPairingSymmetry E Q P S).hom.app (A, B)).left ≫
         @pullback.fst C cat B.left A.left S B.hom A.hom
@@ -373,7 +382,7 @@ lemma pullbackPairingSymmetry_hom_app_fst (A : E.Over P S) (B : Q.Over P S) :
   exact pullbackSymmetry_hom_comp_fst A.hom B.hom
 
 /-- The second reversed projection is the first forward projection. -/
-@[reassoc (attr := simp)]
+@[reassoc]
 lemma pullbackPairingSymmetry_hom_app_snd (A : E.Over P S) (B : Q.Over P S) :
     ((pullbackPairingSymmetry E Q P S).hom.app (A, B)).left ≫
         @pullback.snd C cat B.left A.left S B.hom A.hom
@@ -383,7 +392,7 @@ lemma pullbackPairingSymmetry_hom_app_snd (A : E.Over P S) (B : Q.Over P S) :
   exact pullbackSymmetry_hom_comp_snd A.hom B.hom
 
 /-- The first forward projection after the inverse is the second reversed one. -/
-@[reassoc (attr := simp)]
+@[reassoc]
 lemma pullbackPairingSymmetry_inv_app_fst (A : E.Over P S) (B : Q.Over P S) :
     ((pullbackPairingSymmetry E Q P S).inv.app (A, B)).left ≫
         pullback.fst A.hom B.hom =
@@ -393,7 +402,7 @@ lemma pullbackPairingSymmetry_inv_app_fst (A : E.Over P S) (B : Q.Over P S) :
   exact pullbackSymmetry_inv_comp_fst A.hom B.hom
 
 /-- The second forward projection after the inverse is the first reversed one. -/
-@[reassoc (attr := simp)]
+@[reassoc]
 lemma pullbackPairingSymmetry_inv_app_snd (A : E.Over P S) (B : Q.Over P S) :
     ((pullbackPairingSymmetry E Q P S).inv.app (A, B)).left ≫
         pullback.snd A.hom B.hom =

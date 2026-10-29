@@ -182,7 +182,6 @@ lemma pullbackOfIntersectionOfPostcomp_existsUnique_lift (A : E.Over P S)
   · exact hk.2.trans (pullback.lift_snd _ _ _).symm
 
 /-- Identity preservation on underlying arrows follows from the functor law. -/
-@[simp]
 lemma pullbackOfIntersectionOfPostcomp_map_id_left (A : E.Over P S) :
     ((pullbackOfIntersectionOfPostcomp E P f).map (𝟙 A)).left =
       𝟙 ((pullbackOfIntersectionOfPostcomp E P f).obj A).left := by

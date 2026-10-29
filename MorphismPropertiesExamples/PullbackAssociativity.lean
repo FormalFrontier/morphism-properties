@@ -340,31 +340,31 @@ private lemma structuredPairData_obj_left (A : E.Over P S) (B : Q.Over P S) :
 private noncomputable def structuredPairIso :
     (structuredPairData S E Q P).cone.pt ≅ MorphismProperty.Over.pullbackPairing E Q P S :=
   (structuredPairData S E Q P).isLimit.conePointUniqueUpToIso
-    (MorphismProperty.Over.pullbackPairingFan_isLimit E Q P S)
+    (MorphismProperty.Over.pullbackPairingFanIsLimit E Q P S)
 
 private lemma structuredPairIso_hom_fst :
     (structuredPairIso S E Q P).hom ≫ MorphismProperty.Over.pullbackPairingFst E Q P S =
       (BinaryFan.fst ((structuredPairData S E Q P).cone)) :=
   (structuredPairData S E Q P).isLimit.conePointUniqueUpToIso_hom_comp
-    (MorphismProperty.Over.pullbackPairingFan_isLimit E Q P S) ⟨WalkingPair.left⟩
+    (MorphismProperty.Over.pullbackPairingFanIsLimit E Q P S) ⟨WalkingPair.left⟩
 
 private lemma structuredPairIso_hom_snd :
     (structuredPairIso S E Q P).hom ≫ MorphismProperty.Over.pullbackPairingSnd E Q P S =
       (BinaryFan.snd ((structuredPairData S E Q P).cone)) :=
   (structuredPairData S E Q P).isLimit.conePointUniqueUpToIso_hom_comp
-    (MorphismProperty.Over.pullbackPairingFan_isLimit E Q P S) ⟨WalkingPair.right⟩
+    (MorphismProperty.Over.pullbackPairingFanIsLimit E Q P S) ⟨WalkingPair.right⟩
 
 private lemma structuredPairIso_inv_fst :
     (structuredPairIso S E Q P).inv ≫ (BinaryFan.fst ((structuredPairData S E Q P).cone)) =
       MorphismProperty.Over.pullbackPairingFst E Q P S :=
   (structuredPairData S E Q P).isLimit.conePointUniqueUpToIso_inv_comp
-    (MorphismProperty.Over.pullbackPairingFan_isLimit E Q P S) ⟨WalkingPair.left⟩
+    (MorphismProperty.Over.pullbackPairingFanIsLimit E Q P S) ⟨WalkingPair.left⟩
 
 private lemma structuredPairIso_inv_snd :
     (structuredPairIso S E Q P).inv ≫ (BinaryFan.snd ((structuredPairData S E Q P).cone)) =
       MorphismProperty.Over.pullbackPairingSnd E Q P S :=
   (structuredPairData S E Q P).isLimit.conePointUniqueUpToIso_inv_comp
-    (MorphismProperty.Over.pullbackPairingFan_isLimit E Q P S) ⟨WalkingPair.right⟩
+    (MorphismProperty.Over.pullbackPairingFanIsLimit E Q P S) ⟨WalkingPair.right⟩
 
 private lemma structuredPairData_fst_app_left (A : E.Over P S) (B : Q.Over P S) :
     ((BinaryFan.fst ((structuredPairData S E Q P).cone)).app (A, B)).left =
@@ -1918,34 +1918,49 @@ noncomputable def rightTripleCoordinates (j : Fin 2) : rightTriple.obj j ≅ tri
     simpa only [types_comp_apply] using
       ConcreteCategory.congr_hom (Over.w (rightF.app j)) p)
 
+/-!
+### Coordinate normal form
+
+The coordinate formulas in both directions use `Triple j`, the underlying type of
+`tripleObject j`, as their explicit concrete-morphism endpoint. For `rw` on raw over-object
+expressions, first normalize the endpoint with `simp only [tripleObject_left]`;
+ordinary `simp` already includes this normalization.
+-/
+
 /-- The left coordinate isomorphism recovers the first projection. -/
 @[simp] theorem leftTripleCoordinates_hom_f (j : Fin 2) (p : (leftTriple.obj j).left) :
-    ((leftTripleCoordinates j).hom.left p).val.1 = (leftF.app j).left p :=
+    (ConcreteCategory.hom (Y := (Triple j : Type))
+      (leftTripleCoordinates j).hom.left p).val.1 = (leftF.app j).left p :=
   leftFlatEquiv_f j p
 
 /-- The left coordinate isomorphism recovers the middle projection. -/
 @[simp] theorem leftTripleCoordinates_hom_g (j : Fin 2) (p : (leftTriple.obj j).left) :
-    ((leftTripleCoordinates j).hom.left p).val.2.1 = (leftG.app j).left p :=
+    (ConcreteCategory.hom (Y := (Triple j : Type))
+      (leftTripleCoordinates j).hom.left p).val.2.1 = (leftG.app j).left p :=
   leftFlatEquiv_g j p
 
 /-- The left coordinate isomorphism recovers the last projection. -/
 @[simp] theorem leftTripleCoordinates_hom_h (j : Fin 2) (p : (leftTriple.obj j).left) :
-    ((leftTripleCoordinates j).hom.left p).val.2.2 = (leftH.app j).left p :=
+    (ConcreteCategory.hom (Y := (Triple j : Type))
+      (leftTripleCoordinates j).hom.left p).val.2.2 = (leftH.app j).left p :=
   leftFlatEquiv_h j p
 
 /-- The right coordinate isomorphism recovers the first projection. -/
 @[simp] theorem rightTripleCoordinates_hom_f (j : Fin 2) (p : (rightTriple.obj j).left) :
-    ((rightTripleCoordinates j).hom.left p).val.1 = (rightF.app j).left p :=
+    (ConcreteCategory.hom (Y := (Triple j : Type))
+      (rightTripleCoordinates j).hom.left p).val.1 = (rightF.app j).left p :=
   rightFlatEquiv_f j p
 
 /-- The right coordinate isomorphism recovers the middle projection. -/
 @[simp] theorem rightTripleCoordinates_hom_g (j : Fin 2) (p : (rightTriple.obj j).left) :
-    ((rightTripleCoordinates j).hom.left p).val.2.1 = (rightG.app j).left p :=
+    (ConcreteCategory.hom (Y := (Triple j : Type))
+      (rightTripleCoordinates j).hom.left p).val.2.1 = (rightG.app j).left p :=
   rightFlatEquiv_g j p
 
 /-- The right coordinate isomorphism recovers the last projection. -/
 @[simp] theorem rightTripleCoordinates_hom_h (j : Fin 2) (p : (rightTriple.obj j).left) :
-    ((rightTripleCoordinates j).hom.left p).val.2.2 = (rightH.app j).left p :=
+    (ConcreteCategory.hom (Y := (Triple j : Type))
+      (rightTripleCoordinates j).hom.left p).val.2.2 = (rightH.app j).left p :=
   rightFlatEquiv_h j p
 
 /-- On every point, the associator preserves all three flattened coordinates. -/
@@ -1953,13 +1968,13 @@ theorem associator_hom_apply (j : Fin 2) (p : (leftTriple.obj j).left) :
     (rightTripleCoordinates j).hom.left ((associator.hom.app j).left p) =
       (leftTripleCoordinates j).hom.left p := by
   apply Triple.ext
-  · rw [rightTripleCoordinates_hom_f, leftTripleCoordinates_hom_f]
+  · simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app associator_hom_f j)) p
-  · rw [rightTripleCoordinates_hom_g, leftTripleCoordinates_hom_g]
+  · simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app associator_hom_g j)) p
-  · rw [rightTripleCoordinates_hom_h, leftTripleCoordinates_hom_h]
+  · simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app associator_hom_h j)) p
 
@@ -1968,13 +1983,13 @@ theorem associator_inv_apply (j : Fin 2) (p : (rightTriple.obj j).left) :
     (leftTripleCoordinates j).hom.left ((associator.inv.app j).left p) =
       (rightTripleCoordinates j).hom.left p := by
   apply Triple.ext
-  · rw [leftTripleCoordinates_hom_f, rightTripleCoordinates_hom_f]
+  · simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app associator_inv_f j)) p
-  · rw [leftTripleCoordinates_hom_g, rightTripleCoordinates_hom_g]
+  · simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app associator_inv_g j)) p
-  · rw [leftTripleCoordinates_hom_h, rightTripleCoordinates_hom_h]
+  · simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app associator_inv_h j)) p
 
@@ -2023,7 +2038,8 @@ private lemma tripleCoordinates_inv_apply {X : Over S} (j : Fin 2)
 
 /-- The inverse left coordinate isomorphism recovers the F projection. -/
 @[simp] theorem leftTripleCoordinates_inv_f (j : Fin 2) (q : Triple j) :
-    (leftF.app j).left ((leftTripleCoordinates j).inv.left q) = q.val.1 := by
+    (leftF.app j).left (ConcreteCategory.hom (X := (Triple j : Type))
+      (leftTripleCoordinates j).inv.left q) = q.val.1 := by
   calc
     (leftF.app j).left ((leftTripleCoordinates j).inv.left q) =
         ((leftTripleCoordinates j).hom.left
@@ -2034,7 +2050,8 @@ private lemma tripleCoordinates_inv_apply {X : Over S} (j : Fin 2)
 
 /-- The inverse left coordinate isomorphism recovers the G projection. -/
 @[simp] theorem leftTripleCoordinates_inv_g (j : Fin 2) (q : Triple j) :
-    (leftG.app j).left ((leftTripleCoordinates j).inv.left q) = q.val.2.1 := by
+    (leftG.app j).left (ConcreteCategory.hom (X := (Triple j : Type))
+      (leftTripleCoordinates j).inv.left q) = q.val.2.1 := by
   calc
     (leftG.app j).left ((leftTripleCoordinates j).inv.left q) =
         ((leftTripleCoordinates j).hom.left
@@ -2045,7 +2062,8 @@ private lemma tripleCoordinates_inv_apply {X : Over S} (j : Fin 2)
 
 /-- The inverse left coordinate isomorphism recovers the H projection. -/
 @[simp] theorem leftTripleCoordinates_inv_h (j : Fin 2) (q : Triple j) :
-    (leftH.app j).left ((leftTripleCoordinates j).inv.left q) = q.val.2.2 := by
+    (leftH.app j).left (ConcreteCategory.hom (X := (Triple j : Type))
+      (leftTripleCoordinates j).inv.left q) = q.val.2.2 := by
   calc
     (leftH.app j).left ((leftTripleCoordinates j).inv.left q) =
         ((leftTripleCoordinates j).hom.left
@@ -2056,7 +2074,8 @@ private lemma tripleCoordinates_inv_apply {X : Over S} (j : Fin 2)
 
 /-- The inverse right coordinate isomorphism recovers the F projection. -/
 @[simp] theorem rightTripleCoordinates_inv_f (j : Fin 2) (q : Triple j) :
-    (rightF.app j).left ((rightTripleCoordinates j).inv.left q) = q.val.1 := by
+    (rightF.app j).left (ConcreteCategory.hom (X := (Triple j : Type))
+      (rightTripleCoordinates j).inv.left q) = q.val.1 := by
   calc
     (rightF.app j).left ((rightTripleCoordinates j).inv.left q) =
         ((rightTripleCoordinates j).hom.left
@@ -2067,7 +2086,8 @@ private lemma tripleCoordinates_inv_apply {X : Over S} (j : Fin 2)
 
 /-- The inverse right coordinate isomorphism recovers the G projection. -/
 @[simp] theorem rightTripleCoordinates_inv_g (j : Fin 2) (q : Triple j) :
-    (rightG.app j).left ((rightTripleCoordinates j).inv.left q) = q.val.2.1 := by
+    (rightG.app j).left (ConcreteCategory.hom (X := (Triple j : Type))
+      (rightTripleCoordinates j).inv.left q) = q.val.2.1 := by
   calc
     (rightG.app j).left ((rightTripleCoordinates j).inv.left q) =
         ((rightTripleCoordinates j).hom.left
@@ -2078,7 +2098,8 @@ private lemma tripleCoordinates_inv_apply {X : Over S} (j : Fin 2)
 
 /-- The inverse right coordinate isomorphism recovers the H projection. -/
 @[simp] theorem rightTripleCoordinates_inv_h (j : Fin 2) (q : Triple j) :
-    (rightH.app j).left ((rightTripleCoordinates j).inv.left q) = q.val.2.2 := by
+    (rightH.app j).left (ConcreteCategory.hom (X := (Triple j : Type))
+      (rightTripleCoordinates j).inv.left q) = q.val.2.2 := by
   calc
     (rightH.app j).left ((rightTripleCoordinates j).inv.left q) =
         ((rightTripleCoordinates j).hom.left
@@ -2161,16 +2182,16 @@ theorem leftTriple_map_homOfLE (p : (leftTriple.obj 0).left) :
         (![0, 0, 1, 2, 3] : Fin 5 → Fin 4)
           ((leftTripleCoordinates 0).hom.left p).val.2.2) := by
   apply Prod.ext
-  · rw [leftTripleCoordinates_hom_f, leftTripleCoordinates_hom_f]
+  · simp only [tripleObject_left]
     exact (over_naturality_apply leftF
       (homOfLE (by decide : (0 : Fin 2) ≤ 1)) p).trans
         (f_transition_apply ((leftF.app 0).left p))
   · apply Prod.ext
-    · rw [leftTripleCoordinates_hom_g, leftTripleCoordinates_hom_g]
+    · simp only [tripleObject_left]
       exact (over_naturality_apply leftG
         (homOfLE (by decide : (0 : Fin 2) ≤ 1)) p).trans
           (g_transition_apply ((leftG.app 0).left p))
-    · rw [leftTripleCoordinates_hom_h, leftTripleCoordinates_hom_h]
+    · simp only [tripleObject_left]
       exact (over_naturality_apply leftH
         (homOfLE (by decide : (0 : Fin 2) ≤ 1)) p).trans
           (h_transition_apply ((leftH.app 0).left p))
@@ -2186,16 +2207,16 @@ theorem rightTriple_map_homOfLE (p : (rightTriple.obj 0).left) :
         (![0, 0, 1, 2, 3] : Fin 5 → Fin 4)
           ((rightTripleCoordinates 0).hom.left p).val.2.2) := by
   apply Prod.ext
-  · rw [rightTripleCoordinates_hom_f, rightTripleCoordinates_hom_f]
+  · simp only [tripleObject_left]
     exact (over_naturality_apply rightF
       (homOfLE (by decide : (0 : Fin 2) ≤ 1)) p).trans
         (f_transition_apply ((rightF.app 0).left p))
   · apply Prod.ext
-    · rw [rightTripleCoordinates_hom_g, rightTripleCoordinates_hom_g]
+    · simp only [tripleObject_left]
       exact (over_naturality_apply rightG
         (homOfLE (by decide : (0 : Fin 2) ≤ 1)) p).trans
           (g_transition_apply ((rightG.app 0).left p))
-    · rw [rightTripleCoordinates_hom_h, rightTripleCoordinates_hom_h]
+    · simp only [tripleObject_left]
       exact (over_naturality_apply rightH
         (homOfLE (by decide : (0 : Fin 2) ≤ 1)) p).trans
           (h_transition_apply ((rightH.app 0).left p))
@@ -2831,7 +2852,7 @@ private noncomputable def σRightMorphism : rightTriple ⟶ rightTriple :=
   rw [σH_hom_identity] at h
   exact h.trans (Category.comp_id q)
 
-@[reassoc (attr := simp)] private lemma σLeftMorphism_fg :
+@[simp, reassoc] private lemma σLeftMorphism_fg :
     σLeftMorphism ≫ BinaryFan.fst (leftTripleData S F G H).cone =
       BinaryFan.fst (leftTripleData S F G H).cone ≫ σFGMorphism := by
   let p : leftTriple ⟶ (pullbackPairData S F G).cone.pt :=
@@ -2843,7 +2864,7 @@ private noncomputable def σRightMorphism : rightTriple ⟶ rightTriple :=
       (p ≫ σFGMorphism) (q ≫ σH.hom)
   exact h
 
-@[reassoc (attr := simp)] private lemma σRightMorphism_gh :
+@[simp, reassoc] private lemma σRightMorphism_gh :
     σRightMorphism ≫ BinaryFan.snd (rightTripleData S F G H).cone =
       BinaryFan.snd (rightTripleData S F G H).cone ≫ σGHMorphism := by
   let p : rightTriple ⟶ F := BinaryFan.fst (rightTripleData S F G H).cone
@@ -3055,18 +3076,18 @@ private lemma σL_coordinates (j : Fin 2) (p : (leftTriple.obj j).left) :
   apply Prod.ext
   · change ((leftTripleCoordinates j).hom.left ((σL.hom.app j).left p)).val.1 =
       (σF.hom.app j).left ((leftTripleCoordinates j).hom.left p).val.1
-    rw [leftTripleCoordinates_hom_f, leftTripleCoordinates_hom_f]
+    simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app σL_hom_f j)) p
   · apply Prod.ext
     · change ((leftTripleCoordinates j).hom.left ((σL.hom.app j).left p)).val.2.1 =
         ((leftTripleCoordinates j).hom.left p).val.2.1
-      rw [leftTripleCoordinates_hom_g, leftTripleCoordinates_hom_g]
+      simp only [tripleObject_left]
       exact ConcreteCategory.congr_hom
         (congrArg Over.Hom.left (congr_app σL_hom_g j)) p
     · change ((leftTripleCoordinates j).hom.left ((σL.hom.app j).left p)).val.2.2 =
         ((leftTripleCoordinates j).hom.left p).val.2.2
-      rw [leftTripleCoordinates_hom_h, leftTripleCoordinates_hom_h]
+      simp only [tripleObject_left]
       exact ConcreteCategory.congr_hom
         (congrArg Over.Hom.left (congr_app σL_hom_h j)) p
 
@@ -3077,18 +3098,18 @@ private lemma σR_coordinates (j : Fin 2) (p : (rightTriple.obj j).left) :
   apply Prod.ext
   · change ((rightTripleCoordinates j).hom.left ((σR.hom.app j).left p)).val.1 =
       (σF.hom.app j).left ((rightTripleCoordinates j).hom.left p).val.1
-    rw [rightTripleCoordinates_hom_f, rightTripleCoordinates_hom_f]
+    simp only [tripleObject_left]
     exact ConcreteCategory.congr_hom
       (congrArg Over.Hom.left (congr_app σR_hom_f j)) p
   · apply Prod.ext
     · change ((rightTripleCoordinates j).hom.left ((σR.hom.app j).left p)).val.2.1 =
         ((rightTripleCoordinates j).hom.left p).val.2.1
-      rw [rightTripleCoordinates_hom_g, rightTripleCoordinates_hom_g]
+      simp only [tripleObject_left]
       exact ConcreteCategory.congr_hom
         (congrArg Over.Hom.left (congr_app σR_hom_g j)) p
     · change ((rightTripleCoordinates j).hom.left ((σR.hom.app j).left p)).val.2.2 =
         ((rightTripleCoordinates j).hom.left p).val.2.2
-      rw [rightTripleCoordinates_hom_h, rightTripleCoordinates_hom_h]
+      simp only [tripleObject_left]
       exact ConcreteCategory.congr_hom
         (congrArg Over.Hom.left (congr_app σR_hom_h j)) p
 

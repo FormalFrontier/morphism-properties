@@ -1250,7 +1250,7 @@ private noncomputable def targetFanIsLimit : IsLimit targetFan := by
     CategoryTheory.Over.ConstructProducts.over_binaryProduct_of_pullback
   exact BinaryFan.isLimitMapConeEquiv
     (isLimitOfPreserves ((evaluation Input (CategoryTheory.Over (Fin 2))).obj target)
-      (Over.pullbackPairingFan_isLimit ⊤ ⊤ (monomorphisms (Type)) (Fin 2)))
+      (Over.pullbackPairingFanIsLimit ⊤ ⊤ (monomorphisms (Type)) (Fin 2)))
 
 private abbrev DoubledPullback := Types.PullbackObj x y × Fin 2
 
